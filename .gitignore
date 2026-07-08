@@ -1,0 +1,37 @@
+# ===== Maven =====
+target/
+!**/src/main/**/target/
+!**/src/test/**/target/
+
+# ===== Spring Boot =====
+HELP.md
+
+# ===== Credentials & Secrets =====
+application-*.properties
+application-*.yml
+.env
+.env.*
+*.jks
+*.p12
+*.keystore
+
+# ===== Logs =====
+logs/
+*.log
+*.log.*
+
+# ===== Generated artefacts =====
+release-manifest.json
+
+# ===== Developer-local tools =====
+.repomixignore
+.claude/
+
+# ===== IntelliJ IDEA =====
+.idea/
+*.iws
+*.iml
+*.ipr
+
+# ===== VS Code =====
+.vscode/
