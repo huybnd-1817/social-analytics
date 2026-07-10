@@ -7,8 +7,10 @@ target/
 HELP.md
 
 # ===== Credentials & Secrets =====
-application-*.properties
-application-*.yml
+# application-{dev,prod}.properties KHÔNG bị ignore: chúng chứa cấu trúc cấu hình,
+# không chứa secret (prod đọc toàn bộ từ biến môi trường; dev chỉ có creds
+# postgres/postgres localhost). Ignore chúng khiến clone mới không chạy được
+# và cấu hình prod không được review.
 .env
 .env.*
 *.jks
