@@ -1,0 +1,22 @@
+{
+  "score": 9,
+  "criticalCount": 0,
+  "decision": "SEALED",
+  "acceptanceCovered": [
+    "H2 dependency added to pom.xml with test scope — verified: com.h2database:h2 present with <scope>test</scope> in pom.xml",
+    "PostService unit tests cover findAll pagination/mapping, deleteById success, deleteById not-found throwing ResourceNotFoundException, using Mockito @Mock/@InjectMocks — verified: PostServiceTest.java has all three tests with @ExtendWith(MockitoExtension.class), @Mock PostRepository, @InjectMocks PostService; assertions on page content mapping, status mutation, and exception message",
+    "MetricService unit tests cover findAll mapping and pagination using Mockito — verified: MetricServiceTest.java has findAll_returnsMappedPage (all 8 MetricResponse fields asserted) and findAll_mapsZeroCountDefaults (zero-count edge case)",
+    "@DataJpaTest covers PostRepository.findByStatus and findByIdAndStatus on H2 (Flyway disabled in test slice) — verified: PostRepositoryTest.java uses @DataJpaTest @ActiveProfiles(\"test\") @Import(JpaAuditingConfig.class); application-test.properties disables Flyway, sets ddl-auto=create-drop, uses H2 MODE=PostgreSQL URL",
+    "MockMvc tests cover GET /posts 200 with page JSON, DELETE /posts/{id} 204, DELETE missing id 404 via GlobalExceptionHandler — verified: PostControllerTest.java has all three tests; 404 test asserts jsonPath(\"$.error\") confirming GlobalExceptionHandler is active in the slice",
+    "./mvnw test passes with zero failures — confirmed by temper-results.json: 13/13 pass, exit 0"
+  ],
+  "regressionChecked": [
+    "Maven build/test lifecycle: pom.xml adds three test-scoped deps (h2, boot-data-jpa-test, boot-webmvc-test) only; no production compile-scope changes; confirmed via diff",
+    "Existing SocialAnalyticsApplicationTests smoke test: temper-results.json shows 1 pass for this test; production code untouched so context-load behavior unchanged",
+    "No production classes modified: git diff main..feature/unit-test --name-only returned empty for src/main/**; git status shows only pom.xml modified and new test files as untracked — production code clean"
+  ],
+  "contractStatus": "OK",
+  "refuted": [],
+  "unproven": [],
+  "reachableRegressions": []
+}

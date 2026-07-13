@@ -40,15 +40,15 @@
 
 ### Tasks
 
-- [ ] **D2-01** Add test dependencies: JUnit5, Mockito, MockMvc, H2 (in-memory for tests)
-- [ ] **D2-02** Write unit tests for `PostService`
+- [x] **D2-01** Add test dependencies: JUnit5, Mockito, MockMvc, H2 (in-memory for tests)
+- [x] **D2-02** Write unit tests for `PostService`
   - Test: create, findAll (paginated), delete, not-found exception
   - Tool: Mockito (`@Mock`, `@InjectMocks`)
-- [ ] **D2-03** Write unit tests for `MetricService`
+- [x] **D2-03** Write unit tests for `MetricService`
   - Test: save metric snapshot, findLatestByPostId
-- [ ] **D2-04** Write `@DataJpaTest` for `PostRepository`
+- [x] **D2-04** Write `@DataJpaTest` for `PostRepository`
   - Test: custom queries if any
-- [ ] **D2-05** Write `MockMvc` controller tests for `PostController`
+- [x] **D2-05** Write `MockMvc` controller tests for `PostController`
   - Test: 200 GET /posts, 204 DELETE /posts/{id}, 404 on missing post
 - [ ] **D2-06** Add Apache POI dependency to `pom.xml`
 - [ ] **D2-07** Implement `ExcelImportService`
