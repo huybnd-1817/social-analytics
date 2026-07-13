@@ -1,0 +1,11 @@
+{
+  "commands": [
+    {
+      "command": "./mvnw test",
+      "exitCode": 0,
+      "status": "pass",
+      "summary": "15 total after /review-code fixes: PostServiceTest 3, MetricServiceTest 2, PostRepositoryTest 6, PostControllerTest 3, SocialAnalyticsApplicationTests 1 — all pass",
+      "ts": "2026-07-13T03:21:15.068Z"
+    }
+  ]
+}

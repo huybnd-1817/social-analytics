@@ -1,0 +1,21 @@
+{
+  "generated_at": "2026-07-10T14:03:07Z",
+  "plan": "260710-2030-d2-unit-tests",
+  "features": [
+    {
+      "fcode": "F001",
+      "name": "Post Metric Test Suite",
+      "slug": "F001_PostMetricTestSuite",
+      "priority": "P1",
+      "type": "background",
+      "related": {
+        "screens": [],
+        "user_stories": [],
+        "routes": [],
+        "models": [],
+        "bl": [],
+        "perms": []
+      }
+    }
+  ]
+}

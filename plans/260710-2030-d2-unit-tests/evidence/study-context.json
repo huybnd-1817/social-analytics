@@ -1,0 +1,28 @@
+{
+  "task": "Implement D2-01..D2-05 from docs/task-breakdown.md: add H2 test dependency, unit tests for PostService (findAll paginated, deleteById success + not-found) and MetricService (findAll mapping/pagination), @DataJpaTest for PostRepository custom queries, MockMvc tests for PostController (200 GET /posts, 204 DELETE, 404 missing). Tests only — no production code changes (user-confirmed scope).",
+  "mode": "interactive",
+  "acceptanceCriteria": [
+    "H2 dependency added to pom.xml with test scope",
+    "PostService unit tests cover findAll pagination/mapping, deleteById success, deleteById not-found throwing ResourceNotFoundException, using Mockito @Mock/@InjectMocks",
+    "MetricService unit tests cover findAll mapping and pagination using Mockito",
+    "@DataJpaTest covers PostRepository.findByStatus and findByIdAndStatus on H2 (Flyway disabled in test slice)",
+    "MockMvc tests cover GET /posts 200 with page JSON, DELETE /posts/{id} 204, DELETE missing id 404 via GlobalExceptionHandler",
+    "./mvnw test passes with zero failures"
+  ],
+  "touchpoints": [
+    "pom.xml",
+    "src/test/java/com/sunasterisk/socialanalytics/service/PostServiceTest.java",
+    "src/test/java/com/sunasterisk/socialanalytics/service/MetricServiceTest.java",
+    "src/test/java/com/sunasterisk/socialanalytics/repository/PostRepositoryTest.java",
+    "src/test/java/com/sunasterisk/socialanalytics/controller/PostControllerTest.java",
+    "src/test/resources/application-test.properties"
+  ],
+  "blastRadius": [
+    "Maven build/test lifecycle (new H2 test-scope dependency)",
+    "Existing SocialAnalyticsApplicationTests smoke test must still pass",
+    "No production classes modified"
+  ],
+  "contracts": [
+    "./mvnw test"
+  ]
+}

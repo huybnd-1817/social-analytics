@@ -1,0 +1,7 @@
+{
+  "mode": "single",
+  "intents": [
+    "(developer, quality/testing, automated unit+slice test coverage for existing Post/Metric services, repository, and controller)"
+  ],
+  "justification": ""
+}
