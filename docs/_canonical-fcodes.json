@@ -16,6 +16,36 @@
         "bl": [],
         "perms": []
       }
+    },
+    {
+      "fcode": "F002",
+      "name": "Excel Bulk Import Posts",
+      "slug": "F002_ExcelBulkImportPosts",
+      "priority": "P0",
+      "type": "background",
+      "related": {
+        "screens": [],
+        "user_stories": [],
+        "routes": [],
+        "models": [],
+        "bl": [],
+        "perms": []
+      }
+    },
+    {
+      "fcode": "F003",
+      "name": "Excel Export Report",
+      "slug": "F003_ExcelExportReport",
+      "priority": "P0",
+      "type": "background",
+      "related": {
+        "screens": [],
+        "user_stories": [],
+        "routes": [],
+        "models": [],
+        "bl": [],
+        "perms": []
+      }
     }
   ]
 }

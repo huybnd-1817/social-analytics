@@ -1,0 +1,36 @@
+{
+  "task": "Implement tasks D2-06..D2-11 from docs/task-breakdown.md: Apache POI dependency, ExcelImportService (xlsx rows -> Post via reflection, ImportBatch summary), POST /import-posts (MultipartFile), ExcelExportService (reflection-based row writer), GET /export-report (posts + latest metrics streamed as xlsx), unit tests for ExcelImportService",
+  "mode": "interactive",
+  "acceptanceCriteria": [
+    "poi-ooxml dependency present in pom.xml and project compiles",
+    "ExcelImportService reads .xlsx, maps rows to Post entities, persists them, returns ImportBatch with total/success/failed counts and DONE/FAILED status",
+    "POST /import-posts accepts a MultipartFile and returns the ImportBatch summary as JSON",
+    "ExcelExportService writes entity rows to xlsx via reflection over annotated/declared fields",
+    "GET /export-report streams an .xlsx download containing posts joined with their latest social metrics",
+    "ExcelImportServiceTest covers: valid file, missing columns, empty file — all passing",
+    "Existing test suite still passes; invalid uploads return 4xx not 500"
+  ],
+  "touchpoints": [
+    "pom.xml",
+    "src/main/resources/application.properties",
+    "src/main/java/com/sunasterisk/socialanalytics/service/ExcelImportService.java",
+    "src/main/java/com/sunasterisk/socialanalytics/service/ExcelExportService.java",
+    "src/main/java/com/sunasterisk/socialanalytics/controller/ (import/export endpoints)",
+    "src/main/java/com/sunasterisk/socialanalytics/controller/GlobalExceptionHandler.java",
+    "src/test/java/com/sunasterisk/socialanalytics/service/ExcelImportServiceTest.java"
+  ],
+  "blastRadius": [
+    "PostRepository, ImportBatchRepository, SocialMetricRepository (new call sites)",
+    "GlobalExceptionHandler (new exception mappings)",
+    "application.properties (multipart limits affect whole app)",
+    "Future D5 JMS ImportEventProducer hooks into import completion",
+    "Future D6 @ExcelColumn annotation refactor of ExcelExportService"
+  ],
+  "contracts": [
+    "Post.user and ImportBatch.user are NOT NULL FKs — import must resolve a real User",
+    "Partial unique index (platform, platform_post_id) WHERE status='ACTIVE' — duplicate active keys raise DataIntegrityViolationException",
+    "Error response shape: {\"error\": \"...\"} via GlobalExceptionHandler",
+    "DTOs are records with static from(Entity) factories",
+    "SocialMetricRepository.findTop1ByPostOrderByCrawledAtDesc is the latest-metric contract"
+  ]
+}

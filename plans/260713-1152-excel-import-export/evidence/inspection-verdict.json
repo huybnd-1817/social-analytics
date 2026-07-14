@@ -1,0 +1,31 @@
+{
+  "score": 9,
+  "criticalCount": 0,
+  "decision": "SEALED",
+  "acceptanceCovered": [
+    "poi-ooxml dependency present in pom.xml and project compiles — pom.xml diff confirms org.apache.poi:poi-ooxml:5.3.0 added; temper-results.json shows ./mvnw -q compile exit 0 and ./mvnw test 23/23 pass exit 0",
+    "ExcelImportService reads .xlsx, maps rows to Post entities, persists them, returns ImportBatch with total/success/failed counts and DONE/FAILED status — ExcelImportService.java: XSSFWorkbook opens stream, ExcelRowMapper.mapRows() produces List<Post>, postRepository.saveAll() persists on success path; ImportBatchResponse.from(batch) returns batchId/totalRecords/successRecords/failedRecords/status; T01 asserts DONE+successRecords=2, T04 asserts FAILED+successRecords=0",
+    "POST /import-posts accepts a MultipartFile and returns the ImportBatch summary as JSON — ImportController.java: @PostMapping consumes MULTIPART_FORM_DATA_VALUE, @RequestParam(\"file\") MultipartFile, returns ResponseEntity<ImportBatchResponse> HTTP 200; GlobalExceptionHandler maps IllegalArgumentException→400 for invalid files",
+    "ExcelExportService writes entity rows to xlsx via reflection over annotated/declared fields — ReflectionRowWriter.java: constructor calls getDeclaredFields() and setAccessible(true); writeHeader() iterates fields for column names; writeRow() iterates fields calling field.get(instance); ExcelExportService uses ReflectionRowWriter<ExportRowModel>",
+    "GET /export-report streams an .xlsx download containing posts joined with their latest social metrics — ExcelExportController.java: @GetMapping(\"/export-report\") sets Content-Type application/vnd.openxmlformats-officedocument.spreadsheetml.sheet and Content-Disposition attachment; ExcelExportService.buildExportBytes() calls postRepository.findByStatus(ACTIVE) then socialMetricRepository.findTop1ByPostOrderByCrawledAtDesc(post) per post; ExportRowModel carries all 13 post+metric fields",
+    "ExcelImportServiceTest covers: valid file, missing columns, empty file — all passing — T01 (valid 2-row file→DONE), T02 (missing platform_post_id column→IllegalArgumentException), T03 (header-only/empty file→IllegalArgumentException containing \"no data rows\"); temper-results.json confirms 23/23 pass",
+    "Existing test suite still passes; invalid uploads return 4xx not 500 — temper-results.json: ./mvnw test 23/23 pass exit 0 (all pre-existing tests retained); GlobalExceptionHandler maps IllegalArgumentException→400, MaxUploadSizeExceededException→400; IllegalStateException (seed user missing)→500 only for environment misconfiguration, not for invalid upload content"
+  ],
+  "regressionChecked": [
+    "PostRepository.findByStatus(PostStatus, Pageable) — pre-existing paginated query untouched; new findByStatus(PostStatus) overload added without conflict",
+    "PostRepository.findByIdAndStatus — unchanged",
+    "UserRepository.findByEmail — unchanged; new findFirstByOrderByIdAsc added without conflict",
+    "GlobalExceptionHandler pre-existing handlers (ResourceNotFoundException→404, PropertyReferenceException→400, InvalidDataAccessApiUsageException→400) — all retained; three new handlers appended (IllegalArgumentException, IllegalStateException, MaxUploadSizeExceededException)",
+    "application.properties: multipart limits (max-file-size=10MB, max-request-size=11MB) added to base profile; max-page-size=100 and pageable serialization-mode untouched",
+    "JPA open-in-view=false confirmed — ExcelExportService @Transactional(readOnly=true) holds the session for N+1 metric loop; no LazyInitializationException regression",
+    "pom.xml: poi-ooxml 5.3.0 added; no existing dependency version changes or removals",
+    "H-1 fix verified: @Transactional on importPosts() (proxy entry); persistSuccess/persistFailure private — all Spring Data calls join outer TX via REQUIRED propagation; BR-004 atomicity now enforced; IOException path also rolls back batch creation correctly",
+    "H-2 fix verified: null filename guard 'unknown.xlsx' at lines 65-66 before createProcessingBatch; validateFileGuard uses raw getOriginalFilename() for extension check (correct — null there uses content-type fallback)",
+    "M-1 fix verified: IOException.getMessage() logged at WARN internally; client receives static string only — no POI internals exposed",
+    "M-5 fix verified: buildExportBytes() at line 51 before setContentType/setHeader at lines 53-54; Spring can override status to 500 if service throws before response is committed"
+  ],
+  "contractStatus": "OK",
+  "refuted": [],
+  "unproven": [],
+  "reachableRegressions": []
+}

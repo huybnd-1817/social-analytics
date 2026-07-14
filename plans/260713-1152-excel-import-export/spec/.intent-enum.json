@@ -1,0 +1,8 @@
+{
+  "mode": "system",
+  "intents": [
+    "(user, bulk-import posts from Excel file, posts persisted with ImportBatch total/success/failed summary)",
+    "(user, export posts + latest metrics report, .xlsx file downloaded)"
+  ],
+  "justification": ""
+}
