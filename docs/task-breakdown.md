@@ -12,23 +12,23 @@
 
 ### Tasks
 
-- [ ] **D1-01** Initialize Spring Boot 3.x project (`social-analytics`) via Spring Initializr
+- [x] **D1-01** Initialize Spring Boot 3.x project (`social-analytics`) via Spring Initializr
   - Dependencies: Spring Web, Spring Data JPA, PostgreSQL Driver, Lombok, Validation, Swagger (springdoc-openapi)
-- [ ] **D1-02** Configure `application.properties`
+- [x] **D1-02** Configure `application.properties`
   - DB connection (PostgreSQL), JPA DDL auto, logging levels, `hibernate.jdbc.time_zone=UTC`
-- [ ] **D1-03** Set up project package structure
+- [x] **D1-03** Set up project package structure
   - `controller/`, `service/`, `repository/`, `dto/`, `entity/`, `util/`, `config/`
-- [ ] **D1-04** Create JPA entities
+- [x] **D1-04** Create JPA entities
   - `User`, `Post`, `SocialMetric`, `SocialAccount`, `ImportBatch`
   - Map relationships, indexes per `database-design.md`
-- [ ] **D1-05** Create repositories
+- [x] **D1-05** Create repositories
   - `UserRepository`, `PostRepository`, `SocialMetricRepository`, `ImportBatchRepository`
-- [ ] **D1-06** Implement basic CRUD service + controller for `Post`
+- [x] **D1-06** Implement basic CRUD service + controller for `Post`
   - `GET /posts` (paginated), `DELETE /posts/{id}`
-- [ ] **D1-07** Implement basic CRUD service + controller for `SocialMetric`
+- [x] **D1-07** Implement basic CRUD service + controller for `SocialMetric`
   - `GET /metrics`
-- [ ] **D1-08** Add Swagger / OpenAPI config; verify all endpoints appear in Swagger UI
-- [ ] **D1-09** Verify project compiles, Swagger UI accessible at `/swagger-ui.html`
+- [x] **D1-08** Add Swagger / OpenAPI config; verify all endpoints appear in Swagger UI
+- [x] **D1-09** Verify project compiles, Swagger UI accessible at `/swagger-ui.html`
 
 **Deliverables:** Compilable project, DB tables auto-created, CRUD APIs documented in Swagger
 
@@ -50,17 +50,17 @@
   - Test: custom queries if any
 - [x] **D2-05** Write `MockMvc` controller tests for `PostController`
   - Test: 200 GET /posts, 204 DELETE /posts/{id}, 404 on missing post
-- [ ] **D2-06** Add Apache POI dependency to `pom.xml`
-- [ ] **D2-07** Implement `ExcelImportService`
+- [x] **D2-06** Add Apache POI dependency to `pom.xml`
+- [x] **D2-07** Implement `ExcelImportService`
   - Read Excel file, map rows to `Post` entity using Reflection
   - Return `ImportBatch` summary (total / success / failed)
-- [ ] **D2-08** Implement `POST /import-posts` controller
+- [x] **D2-08** Implement `POST /import-posts` controller
   - Accept `MultipartFile`, delegate to `ExcelImportService`, return summary JSON
-- [ ] **D2-09** Implement `ExcelExportService`
+- [x] **D2-09** Implement `ExcelExportService`
   - Generic Reflection-based row writer: read annotated fields from entity class → write columns
-- [ ] **D2-10** Implement `GET /export-report` controller
+- [x] **D2-10** Implement `GET /export-report` controller
   - Query posts + latest metrics, stream `.xlsx` as download response
-- [ ] **D2-11** Write tests for `ExcelImportService` (valid file, missing columns, empty file)
+- [x] **D2-11** Write tests for `ExcelImportService` (valid file, missing columns, empty file)
 
 **Deliverables:** ≥70% service coverage, working `/import-posts` and `/export-report`
 
@@ -181,9 +181,9 @@
 
 #### Advanced Reflection
 
-- [ ] **D6-06** Implement `@ExcelColumn` custom annotation for entity fields
+- [x] **D6-06** Implement `@ExcelColumn` custom annotation for entity fields
   - Attributes: `headerName`, `order`, `format`
-- [ ] **D6-07** Refactor `ExcelExportService` to use `@ExcelColumn` reflection scan
+- [x] **D6-07** Refactor `ExcelExportService` to use `@ExcelColumn` reflection scan
   - Auto-discover annotated fields → build headers + rows dynamically
 - [ ] **D6-08** Apply `@ExcelColumn` to `Post` and `SocialMetric`; verify export output
 

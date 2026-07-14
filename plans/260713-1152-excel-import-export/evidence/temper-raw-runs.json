@@ -1,0 +1,37 @@
+[
+  {
+    "command": "./mvnw -q compile",
+    "exitCode": 0,
+    "summary": "Compile check passed, all classes up to date"
+  },
+  {
+    "command": "./mvnw test",
+    "exitCode": 0,
+    "summary": "Tests run: 23, Failures: 0, Errors: 0, Skipped: 0"
+  },
+  {
+    "command": "./mvnw test (post-review fixes H-1,H-2,M-1,M-5)",
+    "exitCode": 0,
+    "summary": "Tests run: 23, Failures: 0, Errors: 0, Skipped: 0"
+  },
+  {
+    "command": "./mvnw test (post-refactor: ExcelRowMapper reflection-based per D2-07)",
+    "exitCode": 0,
+    "summary": "Tests run: 23, Failures: 0, Errors: 0, Skipped: 0"
+  },
+  {
+    "command": "./mvnw test (post-adversarial fixes F1-F4,F7-F9,M2)",
+    "exitCode": 0,
+    "summary": "Tests run: 23, Failures: 0, Errors: 0, Skipped: 0"
+  },
+  {
+    "command": "./mvnw test (D6-06/07: @ExcelColumn annotation + writer refactor + 4 new tests)",
+    "exitCode": 0,
+    "summary": "Tests run: 27, Failures: 0, Errors: 0, Skipped: 0"
+  },
+  {
+    "command": "./mvnw test (re-inspection fixes: singleton writer, setBlank, format validation, cell-limit truncate + 4 new tests)",
+    "exitCode": 0,
+    "summary": "Tests run: 31, Failures: 0, Errors: 0, Skipped: 0"
+  }
+]
