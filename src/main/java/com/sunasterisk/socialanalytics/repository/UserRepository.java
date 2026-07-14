@@ -9,4 +9,7 @@ import java.util.Optional;
 @Repository
 public interface UserRepository extends JpaRepository<User, Long> {
     Optional<User> findByEmail(String email);
+
+    // Import D2: seed-user fallback — lấy User có id nhỏ nhất (không cần OAuth2)
+    Optional<User> findFirstByOrderByIdAsc();
 }

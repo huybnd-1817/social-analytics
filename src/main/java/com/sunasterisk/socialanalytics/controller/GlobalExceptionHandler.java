@@ -10,6 +10,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
+import org.springframework.web.multipart.MaxUploadSizeExceededException;
 
 import java.util.Map;
 
@@ -48,5 +49,32 @@ public class GlobalExceptionHandler {
         log.warn("Data integrity violation: {}", ex.getMostSpecificCause().getMessage());
         return ResponseEntity.status(HttpStatus.CONFLICT)
                 .body(Map.of("error", "Data conflict: the resource violates a uniqueness or reference constraint"));
+    }
+
+    // Import: file không hợp lệ (rỗng, sai định dạng, thiếu cột, v.v.) → 400
+    // Không lộ stack trace; message từ service đã đủ mô tả cho client.
+    @ExceptionHandler(IllegalArgumentException.class)
+    public ResponseEntity<Map<String, String>> handleBadRequest(IllegalArgumentException ex) {
+        log.debug("Bad request (import validation): {}", ex.getMessage());
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                .body(Map.of("error", ex.getMessage()));
+    }
+
+    // Import: không tìm được seed user — lỗi cấu hình môi trường → 500
+    // KHÔNG nối ex.getMessage() vào body — tránh lộ chi tiết nội bộ (POI, reflection, DB state)
+    // ra client chưa xác thực; chi tiết chỉ nằm trong log.
+    @ExceptionHandler(IllegalStateException.class)
+    public ResponseEntity<Map<String, String>> handleInternalState(IllegalStateException ex) {
+        log.error("Internal state error: {}", ex.getMessage(), ex);
+        return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                .body(Map.of("error", "Internal server error"));
+    }
+
+    // File vượt giới hạn multipart (spring.servlet.multipart.max-file-size) → 400
+    @ExceptionHandler(MaxUploadSizeExceededException.class)
+    public ResponseEntity<Map<String, String>> handleMaxUploadSize(MaxUploadSizeExceededException ex) {
+        log.warn("Upload size exceeded: {}", ex.getMessage());
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                .body(Map.of("error", "Maximum upload size exceeded (limit: 10MB)"));
     }
 }
