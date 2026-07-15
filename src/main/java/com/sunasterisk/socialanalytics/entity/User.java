@@ -30,5 +30,5 @@ public class User extends BaseEntity {
     @JdbcTypeCode(SqlTypes.NAMED_ENUM)
     @Builder.Default
     @Column(name = "role", nullable = false)
-    private UserRole role = UserRole.ADMIN;
+    private UserRole role = UserRole.USER;
 }

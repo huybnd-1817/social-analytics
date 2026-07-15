@@ -1,0 +1,40 @@
+{
+  "task": "Implement Day 3 (D3-01..D3-09) from docs/task-breakdown.md — Spring Security + OAuth2 social login (Facebook/Twitter) with CSRF, custom OAuth2UserService upserting User+SocialAccount, login page, post-login redirect, integration tests",
+  "mode": "interactive",
+  "acceptanceCriteria": [
+    "spring-boot-starter-security + oauth2-client dependencies added; project compiles on Spring Boot 4.1.0 / Java 26 (D3-01)",
+    "SecurityConfig enables CSRF, permits /login, /oauth2/**, /login/oauth2/**, /swagger-ui/**, /v3/api-docs/**; oauth2Login with success/failure handlers (D3-02)",
+    "CSRF token available to templates/REST clients (meta tag or cookie repo) (D3-03)",
+    "application.properties has Facebook + Twitter client registrations (env-var backed, boots with placeholders) (D3-04)",
+    "Custom OAuth2UserService extracts provider user info and upserts User + SocialAccount storing access_token (D3-05)",
+    "GET /login renders page with Facebook and Twitter login buttons (D3-06)",
+    "Successful login redirects to / (D3-07)",
+    "Forms carry CSRF token; tampered/missing CSRF token requests rejected 403 (D3-08)",
+    "Integration tests: unauthenticated protected endpoint -> 302 to login; authenticated (oauth2Login post-processor) -> 200 (D3-09)",
+    "Upserted users get role explicitly set (never rely on ADMIN default) — deferred-trap #4 from 260710 review",
+    "Access tokens never logged; hibernate bind logging stays <= DEBUG",
+    "Full existing test suite still passes (existing controller slice tests must cope with security filters)"
+  ],
+  "touchpoints": [
+    "pom.xml (add security, oauth2-client, thymeleaf, thymeleaf-extras-springsecurity, spring-security-test deps)",
+    "src/main/java/com/sunasterisk/socialanalytics/config/SecurityConfig.java (new)",
+    "src/main/java/com/sunasterisk/socialanalytics/service/ (custom OAuth2UserService, new)",
+    "src/main/java/com/sunasterisk/socialanalytics/controller/ (LoginController, new)",
+    "src/main/resources/templates/login.html (new; first Thymeleaf template)",
+    "src/main/resources/application*.properties (OAuth2 client registrations)",
+    "src/main/java/com/sunasterisk/socialanalytics/repository/SocialAccountRepository.java (upsert lookup)",
+    "src/test/java/ (security integration tests, new; existing @WebMvcTest slices may need security config import)"
+  ],
+  "blastRadius": [
+    "ALL existing endpoints (/posts, /metrics, /import-posts, /export-report, swagger) become authenticated — existing @WebMvcTest slice tests will start failing 401/403 unless configured",
+    "POST/DELETE endpoints (DELETE /posts/{id}, POST /import-posts) now require CSRF token — API consumers affected",
+    "Springdoc swagger-ui must remain reachable per D3-02 permitted paths",
+    "No dashboard page exists yet (D4/D5 scope) — post-login redirect / currently has no UI; login flow must still redirect there"
+  ],
+  "contracts": [
+    "docs/database-design.md: users/social_accounts schema (Flyway V1 already has token columns; ddl-auto=none — no schema change expected)",
+    "docs/task-breakdown.md D3 tasks are the spec of record",
+    "Deferred security traps from plans/reports/*260710*day1-foundation.md: XFF trusted-proxies, bind-log token leak, token encryption at rest (design doc), role DEFAULT ADMIN fail-open, dev-profile default",
+    "Twitter/X OAuth2 requires manual provider registration + PKCE (not a Spring CommonOAuth2Provider)"
+  ]
+}

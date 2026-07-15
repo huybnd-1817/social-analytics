@@ -1,0 +1,21 @@
+{
+  "score": 9.5,
+  "criticalCount": 0,
+  "decision": "SEALED",
+  "acceptanceCovered": [
+    "R1: GET / requires authentication — unauthenticated requests redirect to /login → confirmed by dashboard_unauthenticated_redirectsToLogin test (status 3xxRedirection, redirectedUrl /login) + SecurityConfig anyRequest().authenticated()",
+    "R2: Model attributes name, email, provider injected from OAuth2User + OAuth2AuthenticationToken → verified in Facebook test (name=Alice, email=alice@example.com, provider=test) and Twitter test (name=Bob, email=null, provider=test)",
+    "R3: Logout form POSTs to /logout with CSRF auto-injected via th:action → th:action=\"@{/logout}\" triggers Thymeleaf CSRF injection; Spring Security CSRF filter intact (not disabled in SecurityConfig)",
+    "R4: Style consistent with login.html (same font stack, palette, card shadow, border-radius) → dashboard.html uses identical -apple-system/Segoe UI/Roboto stack, #f0f2f5 background, #1a1a2e headings, #6b7280 muted text, 0 2px 12px shadow, 8px border-radius",
+    "R5: Twitter null email renders N/A in template with no NPE → dashboard_authenticated_twitter_showsNullEmail test passes with model attribute email=null; template uses paired th:if=${email != null} / th:if=${email == null} cells"
+  ],
+  "regressionChecked": [
+    "SecurityConfig — anyRequest().authenticated() unchanged; GET / protected without additional config",
+    "CustomOAuth2UserService — principal attribute extraction unchanged; null-name fallback to 'Unknown' consistent with createNewUser logic",
+    "login.html — unaffected; logout POST still redirects to /login?logout"
+  ],
+  "contractStatus": "VERIFIED",
+  "refuted": [],
+  "unproven": [],
+  "reachableRegressions": []
+}

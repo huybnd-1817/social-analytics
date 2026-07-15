@@ -33,3 +33,21 @@ Bulk-import posts from .xlsx via POST /import-posts — validate-first, all-or-n
 Stream .xlsx report of ACTIVE posts + latest social metrics via GET /export-report.
 
 **Related:** screens: — | routes: — | models: —
+| 4 | F004 | OAuth2 Social Login | P0 | mixed | implemented |
+
+### F004 — OAuth2 Social Login
+
+**Priority:** P0 | **Type:** mixed | **Status:** implemented | **Slug:** F004_Oauth2SocialLogin
+
+OAuth2 social login via Facebook and Twitter/X; upserts User (role=USER) and SocialAccount (access token); secures all app endpoints via Spring Security filter chain; ships login page (SCR001_Login).
+
+**Related:** screens: SCR001_Login | routes: /login, /oauth2/authorization/facebook, /oauth2/authorization/twitter | models: User, SocialAccount
+| 5 | F005 | Dashboard | P1 | ui | implemented |
+
+### F005 — Dashboard
+
+**Priority:** P1 | **Type:** ui | **Status:** implemented | **Slug:** F005_Dashboard
+
+Post-login dashboard at GET / — shows authenticated user's name, email (N/A for Twitter), and provider badge; provides logout via POST /logout.
+
+**Related:** screens: SCR002_Dashboard | routes: / | models: —

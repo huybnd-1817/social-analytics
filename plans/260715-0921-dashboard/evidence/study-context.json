@@ -1,0 +1,26 @@
+{
+  "task": "F005 Dashboard — implement GET / controller and Thymeleaf dashboard page for authenticated OAuth2 users",
+  "mode": "interactive",
+  "acceptanceCriteria": [
+    "R1: GET / requires authentication — unauthenticated requests redirect to /login",
+    "R2: Model attributes name, email, provider injected from OAuth2User + OAuth2AuthenticationToken",
+    "R3: Logout form POSTs to /logout with CSRF auto-injected via th:action",
+    "R4: Style consistent with login.html (same font stack, palette, card shadow, border-radius)",
+    "R5: Twitter null email renders N/A in template with no NPE"
+  ],
+  "touchpoints": [
+    "src/main/java/com/sunasterisk/socialanalytics/controller/DashboardController.java",
+    "src/main/resources/templates/dashboard.html",
+    "src/test/java/com/sunasterisk/socialanalytics/controller/DashboardControllerTest.java"
+  ],
+  "blastRadius": [
+    "SecurityConfig — GET / now served by DashboardController; anyRequest().authenticated() guards it",
+    "CustomOAuth2UserService — principal attributes (name, email) consumed by controller",
+    "login.html — logout redirect target after session invalidation"
+  ],
+  "contracts": [
+    "GET / → 200 with dashboard view when authenticated",
+    "GET / → 302 /login when unauthenticated",
+    "POST /logout → session invalidated, redirect to /login?logout"
+  ]
+}

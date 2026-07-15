@@ -1,8 +1,11 @@
 {
   "primary_lang": "en",
   "last_rebuild_sha": "",
-  "last_feature_spec_run_sha": "54782c78fb6555123b99e517c22ce50e14482d1b",
+  "last_feature_spec_run_sha": "bcb898ac4904296892d80974f5dc8a4340fd1761",
   "fcode_index_sha": "44136fa355b3678a1146ad16f7e8649e94fb4fc21fe77e8310c060f61caaff8a",
   "doc_shas": {},
-  "screen_spec_shas": {}
+  "screen_spec_shas": {
+    "SCR001": "a130d52987bf77781ce5d0e0c22d28567529ee54e14899a8f3d7a8b75fd76d5e",
+    "SCR002": ""
+  }
 }
