@@ -1,0 +1,132 @@
+<!DOCTYPE html>
+<html lang="en"
+      xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Social Analytics — Dashboard</title>
+    <style>
+        *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+            background: #f0f2f5;
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .card {
+            background: #fff;
+            border-radius: 8px;
+            box-shadow: 0 2px 12px rgba(0,0,0,0.10);
+            padding: 2.5rem 2rem;
+            width: 100%;
+            max-width: 420px;
+        }
+
+        h1 {
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: #1a1a2e;
+            text-align: center;
+            margin-bottom: 0.25rem;
+        }
+
+        .subtitle {
+            text-align: center;
+            color: #6b7280;
+            font-size: 0.9rem;
+            margin-bottom: 1.75rem;
+        }
+
+        .info-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-bottom: 1.75rem;
+        }
+
+        .info-table td {
+            padding: 0.6rem 0.5rem;
+            font-size: 0.9rem;
+            border-bottom: 1px solid #f3f4f6;
+        }
+
+        .info-table td:first-child {
+            color: #6b7280;
+            font-weight: 500;
+            width: 30%;
+            white-space: nowrap;
+        }
+
+        .info-table td:last-child {
+            color: #1a1a2e;
+            font-weight: 400;
+            word-break: break-all;
+        }
+
+        .info-table tr:last-child td { border-bottom: none; }
+
+        .badge {
+            display: inline-block;
+            padding: 0.2rem 0.6rem;
+            border-radius: 4px;
+            font-size: 0.8rem;
+            font-weight: 600;
+            text-transform: capitalize;
+        }
+
+        .badge-facebook { background: #e7f0fd; color: #1877f2; }
+        .badge-twitter  { background: #f0f0f0; color: #111; }
+
+        .na { color: #9ca3af; font-style: italic; }
+
+        .btn-logout {
+            width: 100%;
+            padding: 0.75rem 1.25rem;
+            border: none;
+            border-radius: 6px;
+            background: #f3f4f6;
+            color: #374151;
+            font-size: 0.95rem;
+            font-weight: 500;
+            cursor: pointer;
+            transition: background 0.15s;
+        }
+
+        .btn-logout:hover { background: #e5e7eb; }
+    </style>
+</head>
+<body>
+<main>
+    <div class="card">
+        <h1>Social Analytics</h1>
+        <p class="subtitle" th:text="'Welcome, ' + ${name}">Welcome, User</p>
+
+        <table class="info-table">
+            <tr>
+                <td>Email</td>
+                <td th:if="${email != null}" th:text="${email}">user@example.com</td>
+                <td th:if="${email == null}" class="na">N/A</td>
+            </tr>
+            <tr>
+                <td>Provider</td>
+                <td>
+                    <!-- chỉ hỗ trợ 2 provider: facebook / twitter; provider khác sẽ hiển thị như twitter -->
+                    <span th:classappend="${provider == 'facebook'} ? 'badge-facebook' : 'badge-twitter'"
+                          class="badge"
+                          th:text="${provider == 'facebook'} ? 'Facebook' : 'X (Twitter)'">
+                        Facebook
+                    </span>
+                </td>
+            </tr>
+        </table>
+
+        <form th:action="@{/logout}" method="post">
+            <button type="submit" class="btn-logout">Logout</button>
+        </form>
+    </div>
+</main>
+</body>
+</html>

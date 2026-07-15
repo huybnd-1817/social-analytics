@@ -1,0 +1,5 @@
+{
+  "mode": "single",
+  "intents": ["(visitor, authentication, sign in with Facebook/Twitter via OAuth2 to access protected app; session established, User+SocialAccount upserted with tokens)"],
+  "justification": "CSRF protection and endpoint authorization are cross-cutting security properties of the same auth surface — no separate screen-group or API boundary; single feature."
+}

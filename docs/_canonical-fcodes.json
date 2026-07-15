@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-07-10T14:03:07Z",
+  "generated_at": "2026-07-14T09:16:26.171Z",
   "plan": "260710-2030-d2-unit-tests",
   "features": [
     {
@@ -42,6 +42,58 @@
         "screens": [],
         "user_stories": [],
         "routes": [],
+        "models": [],
+        "bl": [],
+        "perms": []
+      }
+    },
+    {
+      "fcode": "F004",
+      "name": "OAuth2 Social Login",
+      "slug": "F004_Oauth2SocialLogin",
+      "priority": "P0",
+      "type": "mixed",
+      "related": {
+        "screens": [
+          "SCR001_Login"
+        ],
+        "user_stories": [
+          "US001",
+          "US002",
+          "US003"
+        ],
+        "routes": [
+          "/login",
+          "/oauth2/authorization/facebook",
+          "/oauth2/authorization/twitter",
+          "/login/oauth2/code/{id}"
+        ],
+        "models": [
+          "User",
+          "SocialAccount"
+        ],
+        "bl": [
+          "BR-001",
+          "BR-002",
+          "BR-003",
+          "BR-004",
+          "BR-005"
+        ],
+        "perms": [
+          "UserRole.USER"
+        ]
+      }
+    },
+    {
+      "fcode": "F005",
+      "name": "Dashboard",
+      "slug": "F005_Dashboard",
+      "priority": "P1",
+      "type": "ui",
+      "related": {
+        "screens": ["SCR002_Dashboard"],
+        "user_stories": ["US001", "US002"],
+        "routes": ["/"],
         "models": [],
         "bl": [],
         "perms": []

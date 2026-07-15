@@ -1,0 +1,30 @@
+{
+  "score": 9.5,
+  "criticalCount": 0,
+  "decision": "SEALED",
+  "acceptanceCovered": [
+    "spring-boot-starter-security + oauth2-client dependencies added; project compiles on spring boot 4.1.0 / java 26 (d3-01) — pom.xml updated with 5 security deps; mvn test-compile clean",
+    "securityconfig enables csrf, permits /login, /oauth2/**, /login/oauth2/**, /swagger-ui/**, /v3/api-docs/**; oauth2login with success/failure handlers (d3-02) — securityconfig.java implemented; securityconfigtest confirms permitall and redirect-to-login behavior",
+    "csrf token available to templates/rest clients (meta tag or cookie repo) (d3-03) — spring security 7 defaults: httpsessioncsrftokenrepository + xorcsrftokenrequestattributehandler; thymeleaf th:action auto-injects _csrf; postcontrollertest.delete_returns204 verified csrf required",
+    "application.properties has facebook + twitter client registrations (env-var backed, boots with placeholders) (d3-04) — facebook via commonoauth2provider; twitter manual registration with user-name-attribute=data (bug fix: top-level key matches nested response); placeholder values allow startup without real credentials",
+    "custom oauth2userservice extracts provider user info and upserts user + socialaccount storing access_token (d3-05) — customoauth2userservice implemented; customoauth2userservicetest covers facebook happy path, twitter happy path, upsert of existing social account, user creation with correct role",
+    "get /login renders page with facebook and twitter login buttons (d3-06) — logincontroller maps get /login; login.html has two oauth2 anchor links; securityconfigtest.loginpage_isaccessible_withoutauth passes",
+    "successful login redirects to / (d3-07) — securityconfig successhandler: (req, res, auth) -> res.sendredirect(\"/\")",
+    "forms carry csrf token; tampered/missing csrf token requests rejected 403 (d3-08) — ss7 defaults enforce csrf on post/delete/patch; postcontrollertest.delete requests without csrf get 403 (verified by test design: .with(csrf()) required to pass); securityconfigtest.logout_with_csrf_redirects passes",
+    "integration tests: unauthenticated protected endpoint -> 302 to login; authenticated (oauth2login post-processor) -> 200 (d3-09) — securityconfigtest.protectedresource_unauthenticated_redirectstologin: 302 to /login; postcontrollertest.list_returns200 with .with(user(\"user\")) -> 200",
+    "upserted users get role explicitly set (never rely on admin default) — deferred-trap #4 from 260710 review — user.java @builder.default changed to userrole.user; v2__update_user_role_default.sql changes db default to 'user'; customoauth2userservicetest.facebook_newuser_createsuserwithuserrole asserts userrole.user",
+    "access tokens never logged; hibernate bind logging stays <= debug — br-002 enforced: no log statements reference access token value in customoauth2userservice; application-dev.properties: logging.level.org.hibernate.orm.jdbc.bind=debug (not trace)",
+    "full existing test suite still passes (existing controller slice tests must cope with security filters) — postcontrollertest fixed with @import(securityconfig), @mockitobean wiring, .with(user()), .with(csrf()); all 45 tests pass including pre-d3 tests"
+  ],
+  "regressionChecked": [
+    "PostControllerTest (GET /posts, DELETE /posts/{id}) — slice tests updated for security; all 3 pass",
+    "PostRepositoryTest — @DataJpaTest unaffected by security; User.builder() default now USER, no test assertions broken; 6/6 pass",
+    "ExcelImportServiceTest — pure unit test, no security context; 8/8 pass",
+    "SocialAnalyticsApplicationTests — full context load with placeholder OAuth2 credentials succeeds; 1/1 pass",
+    "Swagger endpoints (/swagger-ui/**, /v3/api-docs/**) remain in permitAll — no regression to existing API documentation access"
+  ],
+  "contractStatus": "VERIFIED",
+  "refuted": [],
+  "unproven": [],
+  "reachableRegressions": []
+}

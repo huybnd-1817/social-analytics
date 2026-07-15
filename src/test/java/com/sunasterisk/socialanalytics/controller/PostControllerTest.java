@@ -1,15 +1,19 @@
 package com.sunasterisk.socialanalytics.controller;
 
+import com.sunasterisk.socialanalytics.config.SecurityConfig;
 import com.sunasterisk.socialanalytics.dto.PostResponse;
+import com.sunasterisk.socialanalytics.security.CustomOAuth2UserService;
 import com.sunasterisk.socialanalytics.service.PostService;
 import com.sunasterisk.socialanalytics.util.ResourceNotFoundException;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.webmvc.test.autoconfigure.WebMvcTest;
+import org.springframework.context.annotation.Import;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
+import org.springframework.security.oauth2.client.registration.ClientRegistrationRepository;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
@@ -22,12 +26,15 @@ import static org.mockito.ArgumentMatchers.argThat;
 import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
+import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.csrf;
+import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.user;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 @WebMvcTest(PostController.class)
+@Import(SecurityConfig.class)
 @ActiveProfiles("test")
 class PostControllerTest {
 
@@ -36,6 +43,12 @@ class PostControllerTest {
 
     @MockitoBean
     private PostService postService;
+
+    @MockitoBean
+    private CustomOAuth2UserService customOAuth2UserService;
+
+    @MockitoBean
+    private ClientRegistrationRepository clientRegistrationRepository;
 
     @Test
     void list_returns200WithPageJson() throws Exception {
@@ -48,7 +61,7 @@ class PostControllerTest {
         when(postService.findAll(any(Pageable.class)))
                 .thenReturn(new PageImpl<>(List.of(post), pageable, 1));
 
-        mockMvc.perform(get("/posts"))
+        mockMvc.perform(get("/posts").with(user("user")))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.content[0].id").value(1))
                 .andExpect(jsonPath("$.content[0].platform").value("FACEBOOK"))
@@ -65,7 +78,7 @@ class PostControllerTest {
 
     @Test
     void delete_returns204_whenFound() throws Exception {
-        mockMvc.perform(delete("/posts/{id}", 1L))
+        mockMvc.perform(delete("/posts/{id}", 1L).with(user("user")).with(csrf()))
                 .andExpect(status().isNoContent());
 
         verify(postService).deleteById(1L);
@@ -73,11 +86,11 @@ class PostControllerTest {
 
     @Test
     void delete_returns404_whenNotFound() throws Exception {
-        // GlobalExceptionHandler map ResourceNotFoundException → 404 {"error": message}
+        // GlobalExceptionHandler chuyển ResourceNotFoundException → 404 {"error": message}
         doThrow(new ResourceNotFoundException("Post not found: 99"))
                 .when(postService).deleteById(99L);
 
-        mockMvc.perform(delete("/posts/{id}", 99L))
+        mockMvc.perform(delete("/posts/{id}", 99L).with(user("user")).with(csrf()))
                 .andExpect(status().isNotFound())
                 .andExpect(jsonPath("$.error").value("Post not found: 99"));
     }

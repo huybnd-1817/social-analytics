@@ -72,21 +72,22 @@
 
 ### Tasks
 
-- [ ] **D3-01** Add Spring Security + OAuth2 Client dependencies
-- [ ] **D3-02** Implement `SecurityConfig`
+- [x] **D3-01** Add Spring Security + OAuth2 Client dependencies
+- [x] **D3-02** Implement `SecurityConfig`
   - Enable CSRF, configure permitted paths (`/login`, `/oauth2/**`, `/swagger-ui/**`)
   - Set `oauth2Login()` with success/failure handlers
-- [ ] **D3-03** Add CSRF meta tag to all Thymeleaf templates (or configure header-based CSRF for REST)
-- [ ] **D3-04** Configure `application.properties` for OAuth2 providers
+- [x] **D3-03** Add CSRF meta tag to all Thymeleaf templates (or configure header-based CSRF for REST)
+  - Handled via Thymeleaf `th:action` + `thymeleaf-extras-springsecurity6`; no manual meta tag needed
+- [x] **D3-04** Configure `application.properties` for OAuth2 providers
   - Facebook: `client-id`, `client-secret`, `scope`
   - Twitter: `client-id`, `client-secret`, `scope`
-- [ ] **D3-05** Implement `OAuth2UserService` (custom)
+- [x] **D3-05** Implement `OAuth2UserService` (custom)
   - Extract user info from `OAuth2User` response
   - Upsert `User` + `SocialAccount` (store `access_token`)
-- [ ] **D3-06** Implement login page (`/login`) with "Login with Facebook" and "Login with Twitter" buttons
-- [ ] **D3-07** Implement post-login redirect → `/` dashboard
-- [ ] **D3-08** Verify CSRF token included in forms; test CSRF rejection on tampered requests
-- [ ] **D3-09** Write Spring Security integration tests
+- [x] **D3-06** Implement login page (`/login`) with "Login with Facebook" and "Login with Twitter" buttons
+- [x] **D3-07** Implement post-login redirect → `/` dashboard
+- [x] **D3-08** Verify CSRF token included in forms; test CSRF rejection on tampered requests
+- [x] **D3-09** Write Spring Security integration tests
   - Unauthenticated → 302 to login
   - Authenticated user → 200 on protected endpoints
 

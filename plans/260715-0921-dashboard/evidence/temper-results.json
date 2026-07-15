@@ -1,0 +1,11 @@
+{
+  "commands": [
+    {
+      "command": "./mvnw test",
+      "exitCode": 0,
+      "status": "pass",
+      "summary": "49/49 tests pass — DashboardControllerTest 4/4 (Facebook attrs, Twitter null email, null name fallback, unauthenticated redirect)",
+      "ts": "2026-07-15T02:59:00Z"
+    }
+  ]
+}

@@ -1,0 +1,11 @@
+{
+  "commands": [
+    {
+      "command": "mvn test -pl . --no-transfer-progress",
+      "exitCode": 0,
+      "status": "pass",
+      "summary": "45 tests, 0 failures, 0 errors — SocialAnalyticsApplicationTests(1), PostRepositoryTest(6), ReflectionRowWriterTest(8), SecurityConfigTest(5), CustomOAuth2UserServiceTest(9), PostControllerTest(3), PostServiceTest(3), ExcelImportServiceTest(8), MetricServiceTest(2)",
+      "ts": "2026-07-14T09:53:00.000Z"
+    }
+  ]
+}

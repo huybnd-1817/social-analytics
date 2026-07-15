@@ -1,0 +1,137 @@
+<!DOCTYPE html>
+<html lang="en"
+      xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Social Analytics — Login</title>
+    <style>
+        *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+            background: #f0f2f5;
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .card {
+            background: #fff;
+            border-radius: 8px;
+            box-shadow: 0 2px 12px rgba(0,0,0,0.10);
+            padding: 2.5rem 2rem;
+            width: 100%;
+            max-width: 400px;
+        }
+
+        h1 {
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: #1a1a2e;
+            text-align: center;
+            margin-bottom: 0.25rem;
+        }
+
+        .subtitle {
+            text-align: center;
+            color: #6b7280;
+            font-size: 0.9rem;
+            margin-bottom: 1.75rem;
+        }
+
+        .alert {
+            border-radius: 6px;
+            padding: 0.75rem 1rem;
+            font-size: 0.875rem;
+            margin-bottom: 1.25rem;
+        }
+
+        .alert-error {
+            background: #fef2f2;
+            border: 1px solid #fca5a5;
+            color: #b91c1c;
+        }
+
+        .alert-success {
+            background: #f0fdf4;
+            border: 1px solid #86efac;
+            color: #15803d;
+        }
+
+        .providers {
+            display: flex;
+            flex-direction: column;
+            gap: 0.875rem;
+        }
+
+        .btn-provider {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.625rem;
+            padding: 0.75rem 1.25rem;
+            border-radius: 6px;
+            font-size: 0.95rem;
+            font-weight: 500;
+            text-decoration: none;
+            transition: opacity 0.15s;
+        }
+
+        .btn-provider:hover { opacity: 0.88; }
+
+        .btn-facebook {
+            background: #1877f2;
+            color: #fff;
+        }
+
+        .btn-twitter {
+            background: #000;
+            color: #fff;
+        }
+
+        .btn-provider svg {
+            flex-shrink: 0;
+        }
+    </style>
+</head>
+<body>
+<main>
+    <div class="card">
+        <!-- R1: branding -->
+        <h1>Social Analytics</h1>
+        <p class="subtitle">Sign in to continue</p>
+
+        <!-- R2: conditional message band -->
+        <div th:if="${error}" class="alert alert-error" role="alert">
+            Login failed. Please try again.
+        </div>
+        <div th:if="${logout}" class="alert alert-success" role="status">
+            You have been logged out successfully.
+        </div>
+
+        <!-- R3: provider anchor links (GET — no form, no CSRF needed) -->
+        <div class="providers">
+            <a href="/oauth2/authorization/facebook"
+               class="btn-provider btn-facebook"
+               aria-label="Continue with Facebook">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+                    <path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z"/>
+                </svg>
+                Continue with Facebook
+            </a>
+
+            <a href="/oauth2/authorization/twitter"
+               class="btn-provider btn-twitter"
+               aria-label="Continue with X (Twitter)">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+                    <path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"/>
+                </svg>
+                Continue with X (Twitter)
+            </a>
+        </div>
+    </div>
+</main>
+</body>
+</html>
