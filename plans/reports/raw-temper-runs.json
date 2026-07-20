@@ -1,0 +1,17 @@
+[
+  {
+    "command": "./mvnw clean compile -q",
+    "exitCode": 0,
+    "summary": "Compilation successful — no errors, only harmless Lombok deprecation warnings"
+  },
+  {
+    "command": "./mvnw clean test -q",
+    "exitCode": 0,
+    "summary": "All 53 tests passed (0 failures, 0 errors, 0 skipped) in ~6 seconds"
+  },
+  {
+    "command": "git status",
+    "exitCode": 0,
+    "summary": "Working tree clean with expected changes: AsyncConfig, SocialCrawlerService, CrawlJobService, SocialCrawlerServiceTest, application-test.properties updated"
+  }
+]

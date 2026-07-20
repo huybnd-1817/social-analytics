@@ -2,6 +2,7 @@ package com.sunasterisk.socialanalytics.controller;
 
 import com.sunasterisk.socialanalytics.config.SecurityConfig;
 import com.sunasterisk.socialanalytics.security.CustomOAuth2UserService;
+import com.sunasterisk.socialanalytics.service.CrawlJobService;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.webmvc.test.autoconfigure.WebMvcTest;
@@ -11,6 +12,9 @@ import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
 
+import java.time.Instant;
+
+import static org.mockito.Mockito.when;
 import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.oauth2Login;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
@@ -28,6 +32,9 @@ class DashboardControllerTest {
 
     @MockitoBean
     private ClientRegistrationRepository clientRegistrationRepository;
+
+    @MockitoBean
+    private CrawlJobService crawlJobService;
 
     @Test
     void dashboard_authenticated_facebook_showsNameEmailProvider() throws Exception {
@@ -81,5 +88,16 @@ class DashboardControllerTest {
         mockMvc.perform(get("/"))
                 .andExpect(status().is3xxRedirection())
                 .andExpect(redirectedUrl("/login"));
+    }
+
+    @Test
+    void dashboard_lastCrawledAt_exposedInModelAsFormattedString() throws Exception {
+        Instant ts = Instant.parse("2026-07-15T07:00:00Z");
+        when(crawlJobService.getLastCrawledAt()).thenReturn(ts);
+
+        mockMvc.perform(get("/").with(oauth2Login()
+                        .attributes(attrs -> attrs.put("name", "Alice"))))
+                .andExpect(status().isOk())
+                .andExpect(model().attribute("lastCrawledAt", "15 Jul 2026, 07:00 UTC"));
     }
 }

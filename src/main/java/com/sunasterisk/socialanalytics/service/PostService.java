@@ -23,6 +23,9 @@ public class PostService {
                 .map(PostResponse::from);
     }
 
+    // Soft delete: chỉ đổi status sang DELETED thay vì xóa khỏi DB.
+    // Không cần gọi repository.save() vì @Transactional giữ entity ở trạng thái managed —
+    // JPA tự động phát hiện thay đổi (dirty checking) và sinh câu UPDATE khi transaction commit.
     @Transactional
     public void deleteById(Long id) {
         Post post = postRepository.findByIdAndStatus(id, PostStatus.ACTIVE)

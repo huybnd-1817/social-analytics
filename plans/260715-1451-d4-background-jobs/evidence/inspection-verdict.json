@@ -1,0 +1,23 @@
+{
+  "score": 8,
+  "criticalCount": 0,
+  "decision": "SEALED",
+  "acceptanceCovered": [
+    "App boots; AsyncConfig registers ThreadPoolTaskExecutor (core=5, max=10, queue=100) and AsyncUncaughtExceptionHandler — verified: SocialAnalyticsApplicationTests.contextLoads passes with @ActiveProfiles(test); AsyncConfig bean wires pool + handler",
+    "SocialCrawlerService.crawlPost(@Async) saves SocialMetric with positive platform-seeded values and sets crawledAt — verified: SocialCrawlerServiceTest facebook/twitter range assertions + crawledAt non-null",
+    "CrawlJobService.updateSocialMetricsJob(@Scheduled) fans out to crawlPost for each ACTIVE post and always updates lastCrawledAt — verified: CrawlJobServiceTest (3 posts, 0 posts, exception path all confirm lastCrawledAt set)",
+    "GET /metrics/last-updated returns lastCrawledAt ISO-8601 or null before first run — verified: MetricControllerTest null + timestamp + unauthenticated-redirects",
+    "Dashboard shows Last Updated row: timestamp after run or Never before — verified: DashboardControllerTest.dashboard_lastCrawledAt_exposedInModel asserts Instant in model",
+    "All 61 tests pass including SocialCrawlerServiceTest, CrawlJobServiceTest, MetricControllerTest — verified: ./mvnw test exit 0, 61 tests 0 failures"
+  ],
+  "regressionChecked": [
+    "DashboardControllerTest: 5 tests pass (4 existing + 1 new) after CrawlJobService injection",
+    "SecurityConfigTest: all 5 tests pass — no security regression from new /metrics/last-updated endpoint",
+    "PostControllerTest: all 3 tests pass — MetricController change did not affect post routes",
+    "SocialAnalyticsApplicationTests: contextLoads passes with @ActiveProfiles(test) — scheduler no longer fires against dev DB"
+  ],
+  "contractStatus": "VERIFIED",
+  "refuted": [],
+  "unproven": [],
+  "reachableRegressions": []
+}

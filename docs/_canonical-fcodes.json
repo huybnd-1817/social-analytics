@@ -98,6 +98,21 @@
         "bl": [],
         "perms": []
       }
+    },
+    {
+      "fcode": "F006",
+      "name": "Automated Crawl Job",
+      "slug": "F006_AutomatedCrawlJob",
+      "priority": "P2",
+      "type": "background",
+      "related": {
+        "screens": ["SCR002_Dashboard"],
+        "user_stories": ["US-D4-01", "US-D4-02", "US-D4-03"],
+        "routes": ["/metrics/last-updated"],
+        "models": ["SocialMetric", "Post"],
+        "bl": ["BR-D4-01", "BR-D4-02", "BR-D4-03"],
+        "perms": []
+      }
     }
   ]
 }

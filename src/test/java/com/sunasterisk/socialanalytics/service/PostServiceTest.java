@@ -27,6 +27,7 @@ import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
+// Kích hoạt Mockito cho class test này
 @ExtendWith(MockitoExtension.class)
 class PostServiceTest {
 

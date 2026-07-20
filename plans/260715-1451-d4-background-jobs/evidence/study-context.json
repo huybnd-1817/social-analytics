@@ -1,0 +1,31 @@
+{
+  "task": "Implement D4: Background Jobs & Multithreading — async thread pool, hourly crawl job, last-updated API and dashboard UI (F006)",
+  "mode": "interactive",
+  "acceptanceCriteria": [
+    "App boots; AsyncConfig registers ThreadPoolTaskExecutor (core=5, max=10, queue=100) and AsyncUncaughtExceptionHandler",
+    "SocialCrawlerService.crawlPost(@Async) saves SocialMetric with positive platform-seeded values and sets crawledAt",
+    "CrawlJobService.updateSocialMetricsJob(@Scheduled) fans out to crawlPost for each ACTIVE post and always updates lastCrawledAt",
+    "GET /metrics/last-updated returns lastCrawledAt ISO-8601 or null before first run",
+    "Dashboard shows Last Updated row: timestamp after run or Never before",
+    "All 61 tests pass including SocialCrawlerServiceTest, CrawlJobServiceTest, MetricControllerTest"
+  ],
+  "touchpoints": [
+    "config/AsyncConfig.java",
+    "service/SocialCrawlerService.java",
+    "service/CrawlJobService.java",
+    "dto/LastUpdatedResponse.java",
+    "controller/MetricController.java",
+    "controller/DashboardController.java",
+    "templates/dashboard.html",
+    "application.properties"
+  ],
+  "blastRadius": [
+    "DashboardController gained CrawlJobService dep — DashboardControllerTest updated",
+    "MetricController gained new endpoint + CrawlJobService dep",
+    "SocialAnalyticsApplicationTests gained @ActiveProfiles(test) to prevent scheduler against dev DB"
+  ],
+  "contracts": [
+    "GET /metrics/last-updated -> LastUpdatedResponse{ lastCrawledAt: Instant? }",
+    "CrawlJobService.getLastCrawledAt() -> Instant | null"
+  ]
+}
