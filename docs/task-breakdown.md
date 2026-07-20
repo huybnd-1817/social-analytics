@@ -101,21 +101,21 @@
 
 ### Tasks
 
-- [ ] **D4-01** Enable `@EnableAsync` and `@EnableScheduling` in main config
-- [ ] **D4-02** Configure `ThreadPoolTaskExecutor` bean
+- [x] **D4-01** Enable `@EnableAsync` and `@EnableScheduling` in main config
+- [x] **D4-02** Configure `ThreadPoolTaskExecutor` bean
   - Pool size, queue capacity, thread name prefix — all in `application.properties`
-- [ ] **D4-03** Implement `SocialCrawlerService`
+- [x] **D4-03** Implement `SocialCrawlerService`
   - `crawlPost(Post post)` — mock FB/TW API call, return fake metrics, save `SocialMetric`
   - Annotate with `@Async` so each post crawl runs on the thread pool
-- [ ] **D4-04** Implement `updateSocialMetricsJob()`
-  - Annotated `@Scheduled(fixedRate = 3600000)`
+- [x] **D4-04** Implement `updateSocialMetricsJob()`
+  - Annotated `@Scheduled(fixedDelay)` hourly crawl job
   - Fetches all active posts, calls `crawlPost()` for each (async, parallel)
   - Logs total duration and success/failure counts
-- [ ] **D4-05** Add `last_crawled_at` tracking (e.g., in-memory `AtomicReference<Instant>` or DB column)
-- [ ] **D4-06** Expose `GET /metrics/last-updated` endpoint returning the last crawl timestamp
-- [ ] **D4-07** Add "Last Updated" section to dashboard UI
-- [ ] **D4-08** Add exception handling in `@Async` methods (`AsyncUncaughtExceptionHandler`)
-- [ ] **D4-09** Write tests for `SocialCrawlerService` (mock the fake API call, verify metric saved)
+- [x] **D4-05** Add `last_crawled_at` tracking (in-memory `AtomicReference<Instant>`)
+- [x] **D4-06** Expose `GET /metrics/last-updated` endpoint returning the last crawl timestamp
+- [x] **D4-07** Add "Last Updated" section to dashboard UI
+- [x] **D4-08** Add exception handling in `@Async` methods (`AsyncUncaughtExceptionHandler`)
+- [x] **D4-09** Write tests for `SocialCrawlerService` (mock the fake API call, verify metric saved)
 
 **Deliverables:** Hourly job running asynchronously, "Last Updated" visible in UI
 
@@ -217,7 +217,7 @@
 | 1   | 2026-07-08 | Project setup & base structure   | Entities, CRUD APIs, Swagger                  |
 | 2   | 2026-07-09 | Unit tests + Excel import/export | Test coverage ≥70%, `/import-posts`, `/export-report` |
 | 3   | 2026-07-10 | Security: CSRF + OAuth2 login    | Secured app, FB/TW login, tokens persisted    |
-| 4   | 2026-07-11 | Background jobs + multithreading | Hourly crawl job, async thread pool, Last Updated UI |
+| 4   | 2026-07-11 | Background jobs + multithreading | Hourly crawl job, async thread pool, Last Updated UI ✓ |
 | 5   | 2026-07-12 | JMS + WebSocket + Charts         | JMS pipeline, realtime chart updates          |
 | 6   | 2026-07-13 | SOAP + Reflection + final tests  | SOAP client, generic export, end-to-end demo  |
 

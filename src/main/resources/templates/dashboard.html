@@ -121,6 +121,11 @@
                     </span>
                 </td>
             </tr>
+            <tr>
+                <td>Last Updated</td>
+                <td th:if="${lastCrawledAt != null}" th:text="${lastCrawledAt}">2026-07-15T07:00:00Z</td>
+                <td th:if="${lastCrawledAt == null}" class="na">Never</td>
+            </tr>
         </table>
 
         <form th:action="@{/logout}" method="post">

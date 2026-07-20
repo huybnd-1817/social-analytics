@@ -6,6 +6,7 @@ import com.sunasterisk.socialanalytics.entity.User;
 import com.sunasterisk.socialanalytics.entity.UserRole;
 import com.sunasterisk.socialanalytics.repository.SocialAccountRepository;
 import com.sunasterisk.socialanalytics.repository.UserRepository;
+import org.jspecify.annotations.NullMarked;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -34,6 +35,7 @@ import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
+@NullMarked
 @ExtendWith(MockitoExtension.class)
 class CustomOAuth2UserServiceTest {
 
@@ -127,6 +129,7 @@ class CustomOAuth2UserServiceTest {
         service.loadUser(facebookRequest());
 
         // BR-001: user mới phải được tạo với role USER, không phụ thuộc DB default ADMIN
+        // Tạo captor cho kiểu User để "chụp" lại object User đó rồi assert từng field.
         ArgumentCaptor<User> cap = ArgumentCaptor.forClass(User.class);
         verify(userRepository).save(cap.capture());
         assertThat(cap.getValue().getRole()).isEqualTo(UserRole.USER);

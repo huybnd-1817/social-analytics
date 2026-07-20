@@ -31,8 +31,11 @@ import java.util.List;
  */
 public class ReflectionRowWriter<T> {
 
-    /** Mô tả một cột đã resolve: field + header + formatter (null nếu không có format). */
-    private record ColumnSpec(Field field, String header, DateTimeFormatter formatter) {}
+    /**
+     * Mô tả một cột đã resolve: field + header + formatter (null nếu không có format).
+     */
+    private record ColumnSpec(Field field, String header, DateTimeFormatter formatter) {
+    }
 
     // Trần Excel: 32767 ký tự/cell — vượt trần POI ném IllegalArgumentException giữa chừng
     private static final int EXCEL_CELL_MAX_CHARS = 32767;
@@ -60,7 +63,9 @@ public class ReflectionRowWriter<T> {
         }
     }
 
-    /** Resolve annotation của một field thành ColumnSpec (header, formatter). */
+    /**
+     * Resolve annotation của một field thành ColumnSpec (header, formatter).
+     */
     private static ColumnSpec toColumnSpec(Field field) {
         field.setAccessible(true);
         ExcelColumn annotation = field.getAnnotation(ExcelColumn.class);
@@ -109,14 +114,12 @@ public class ReflectionRowWriter<T> {
             Cell cell = row.createCell(i);
             try {
                 Object value = column.field().get(model);
-                if (value == null) {
-                    cell.setBlank(); // BLANK thật sự — không phải STRING rỗng, đúng ngữ nghĩa khi đọc lại
-                } else if (column.formatter() != null && value instanceof TemporalAccessor temporal) {
-                    cell.setCellValue(column.formatter().format(temporal));
-                } else if (value instanceof Number num) {
-                    cell.setCellValue(num.doubleValue());
-                } else {
-                    cell.setCellValue(truncateToCellLimit(value.toString()));
+                switch (value) {
+                    case null -> cell.setBlank(); // BLANK thật sự — không phải STRING rỗng, đúng ngữ nghĩa khi đọc lại
+                    case TemporalAccessor temporal when column.formatter() != null ->
+                            cell.setCellValue(column.formatter().format(temporal));
+                    case Number num -> cell.setCellValue(num.doubleValue());
+                    default -> cell.setCellValue(truncateToCellLimit(value.toString()));
                 }
             } catch (IllegalAccessException e) {
                 // Không xảy ra vì đã setAccessible(true) — bọc lại để đảm bảo an toàn
@@ -126,7 +129,9 @@ public class ReflectionRowWriter<T> {
         }
     }
 
-    /** Cắt giá trị vượt trần cell Excel (vd post_url kiểu TEXT không giới hạn) — export không chết vì một giá trị bệnh. */
+    /**
+     * Cắt giá trị vượt trần cell Excel (vd post_url kiểu TEXT không giới hạn) — export không chết vì một giá trị bệnh.
+     */
     private static String truncateToCellLimit(String value) {
         return value.length() <= EXCEL_CELL_MAX_CHARS ? value : value.substring(0, EXCEL_CELL_MAX_CHARS);
     }

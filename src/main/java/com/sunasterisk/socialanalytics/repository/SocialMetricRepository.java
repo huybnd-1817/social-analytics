@@ -9,5 +9,6 @@ import java.util.Optional;
 
 @Repository
 public interface SocialMetricRepository extends JpaRepository<SocialMetric, Long> {
+    // Lấy bản ghi metric mới nhất của một bài post dựa theo thời điểm crawl (crawledAt) giảm dần
     Optional<SocialMetric> findTop1ByPostOrderByCrawledAtDesc(Post post);
 }

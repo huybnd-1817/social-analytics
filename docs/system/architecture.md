@@ -142,8 +142,43 @@ CustomOAuth2UserService.loadUser()  (D3 — upserts User + SocialAccount)
 GET /   →  DashboardController.dashboard()  →  dashboard.html
 ```
 
+## D4 Additions: Background Async/Scheduling Layer
+
+F006 (implemented 2026-07-15) adds a background execution layer that runs independently of HTTP requests on a dedicated `ThreadPoolTaskExecutor`.
+
+```
+── Background Thread Pool (AsyncConfig) ────────────────────────────
+  @Scheduled timer (CrawlJobService)
+       │  fires every hour (app.crawler.rate-ms=3600000)
+       ▼
+  CrawlJobService.updateSocialMetricsJob()
+       │  PostRepository.findByStatus(ACTIVE) → [Post, …]
+       │  for each Post → SocialCrawlerService.crawlPost(post)  [@Async]
+       ▼
+  ThreadPoolTaskExecutor  (core=5, max=10, queue=100, CallerRunsPolicy)
+       │  parallel execution per post
+       ▼
+  SocialCrawlerService.crawlPost(post)
+       │  generate mock metrics (ThreadLocalRandom, platform-seeded)
+       │  SocialMetricRepository.save(metric)
+       └─ return CompletableFuture<Void>
+            ▼
+  CrawlJobService: allOf(...).join() → updates AtomicReference<Instant> lastCrawledAt
+```
+
+| Component | Type | Responsibility |
+|-----------|------|----------------|
+| `AsyncConfig` | `@Configuration @EnableAsync @EnableScheduling implements AsyncConfigurer` | Pool bean (properties-driven), `AsyncUncaughtExceptionHandler` |
+| `SocialCrawlerService` | `@Service` | `@Async crawlPost(Post)` — mock metrics, `save()`, `CompletableFuture<Void>` |
+| `CrawlJobService` | `@Service` | `@Scheduled` job — fan-out, `allOf().join()`, log, `lastCrawledAt` |
+| `LastUpdatedResponse` | DTO record | `{ lastCrawledAt: Instant? }` — serialized as ISO-8601 or null |
+
+`GET /metrics/last-updated` exposes the last-crawl timestamp. Dashboard shows "Last crawled / Never" via `DashboardController` model attribute. No schema change — `SocialMetric.crawledAt` already existed.
+
 ## Deferred / Out-of-Scope
 
 - Token encryption at rest (Jasypt/AES) — deferred post-D3; plaintext storage is the D3 interim state.
 - X-Forwarded-For trust policy — `server.forward-headers-strategy=framework` is already set; relevant when rate-limiting or auth auditing lands.
 - Redis/JDBC session clustering — not needed for single-instance D3 scope.
+- Real FB/TW API calls — D4 uses mock metrics; production API integration deferred.
+- Persistent `lastCrawledAt` across restarts — in-memory only (D4 scope).
