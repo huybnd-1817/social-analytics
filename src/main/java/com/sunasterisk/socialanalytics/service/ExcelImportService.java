@@ -11,11 +11,13 @@ import com.sunasterisk.socialanalytics.repository.PostRepository;
 import com.sunasterisk.socialanalytics.util.ExcelRowMapper;
 import com.sunasterisk.socialanalytics.util.ExcelRowMapper.MappingResult;
 import com.sunasterisk.socialanalytics.util.ExcelRowMapper.RowError;
+import com.sunasterisk.socialanalytics.messaging.ImportSucceededEvent;
 import lombok.RequiredArgsConstructor;
 import org.apache.poi.xssf.usermodel.XSSFSheet;
 import org.apache.poi.xssf.usermodel.XSSFWorkbook;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
@@ -37,6 +39,7 @@ public class ExcelImportService {
 
     private final PostRepository postRepository;
     private final ImportBatchService importBatchService;
+    private final ApplicationEventPublisher eventPublisher;
 
     /**
      * Điểm vào chính: nhận file multipart, trả ImportBatchResponse.
@@ -185,6 +188,7 @@ public class ExcelImportService {
         batch.setImportedAt(Instant.now());
         importBatchService.save(batch);
         log.info("Import thành công: batchId={}, posts={}", batch.getId(), posts.size());
+        eventPublisher.publishEvent(new ImportSucceededEvent(batch.getId(), batch.getSuccessRecords()));
     }
 
     /** BR-004: có ít nhất một lỗi — không lưu Post, batch FAILED. */

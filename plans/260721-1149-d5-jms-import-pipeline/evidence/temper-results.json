@@ -1,0 +1,11 @@
+{
+  "commands": [
+    {
+      "command": "mvn test",
+      "exitCode": 0,
+      "status": "pass",
+      "summary": "Tests run: 64, Failures: 0, Errors: 0, Skipped: 0 — BUILD SUCCESS (includes ImportJmsPipelineTest TC-01/TC-02/TC-03)",
+      "ts": "2026-07-21T08:39:56.000Z"
+    }
+  ]
+}
