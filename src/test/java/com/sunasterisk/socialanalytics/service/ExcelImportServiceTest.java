@@ -7,6 +7,7 @@ import com.sunasterisk.socialanalytics.entity.Post;
 import com.sunasterisk.socialanalytics.entity.PostStatus;
 import com.sunasterisk.socialanalytics.entity.SocialProvider;
 import com.sunasterisk.socialanalytics.entity.User;
+import com.sunasterisk.socialanalytics.messaging.ImportSucceededEvent;
 import com.sunasterisk.socialanalytics.repository.PostRepository;
 import com.sunasterisk.socialanalytics.util.ExcelFixtureBuilder;
 import org.junit.jupiter.api.BeforeEach;
@@ -15,6 +16,7 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.mock.web.MockMultipartFile;
 
 import java.util.List;
@@ -41,6 +43,9 @@ class ExcelImportServiceTest {
 
     @Mock
     private ImportBatchService importBatchService;
+
+    @Mock
+    private ApplicationEventPublisher eventPublisher;
 
     @InjectMocks
     private ExcelImportService excelImportService;
@@ -102,6 +107,8 @@ class ExcelImportServiceTest {
 
         // saveAll phải được gọi đúng một lần
         verify(postRepository).saveAll(anyList());
+        // event phải được publish để kích hoạt JMS pipeline
+        verify(eventPublisher).publishEvent(any(ImportSucceededEvent.class));
     }
 
     // -------------------------------------------------------------------------

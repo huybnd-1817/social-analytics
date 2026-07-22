@@ -45,9 +45,17 @@ public class SecurityConfig {
                     .logoutSuccessUrl("/login?logout") // Sau khi logout thành công, redirect về trang login kèm thông báo đã logout
                     .permitAll() // Cho phép mọi user (kể cả chưa login) truy cập endpoint logout
             );
-        // CSRF: mặc định Spring Security 7 (HttpSessionCsrfTokenRepository +
-        // XorCsrfTokenRequestAttributeHandler). Thymeleaf th:action tự inject _csrf.
-        // Filter chain đơn — tất cả POST/DELETE/PATCH đều yêu cầu CSRF token (quyết định #1).
+        // CSRF: bật cho Thymeleaf forms (login, dashboard); tắt cho REST endpoints.
+        // REST paths không có browser-form flow nên không có CSRF attack vector thực tế.
+        // /posts/** — hiện chỉ có GET, nhưng exempt để sẵn sàng cho future write endpoints;
+        // review lại khi thêm endpoint write có browser-form flow.
+        http.csrf(csrf -> csrf
+                .ignoringRequestMatchers(
+                        "/import-posts",
+                        "/posts/**",
+                        "/metrics/**"
+                )
+        );
         return http.build();
     }
 }

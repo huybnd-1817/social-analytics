@@ -111,6 +111,24 @@
             <artifactId>flyway-database-postgresql</artifactId>
         </dependency>
 
+        <!-- ===== D5: JMS — ActiveMQ Artemis embedded broker + Spring JMS ===== -->
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-artemis</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.apache.artemis</groupId>
+            <artifactId>artemis-jakarta-server</artifactId>
+            <scope>runtime</scope>
+        </dependency>
+        <!-- artemis-server: compile scope ✓ — AddressSettings cần cho ArtemisConfigurationCustomizer.
+             artemis-server là transitive dep của artemis-jakarta-server (runtime), nên phải khai báo
+             tường minh ở đây để trình biên dịch tìm thấy AddressSettings tại compile time. -->
+        <dependency>
+            <groupId>org.apache.artemis</groupId>
+            <artifactId>artemis-server</artifactId>
+        </dependency>
+
         <!-- ===== D3: Spring Security + OAuth2 + Thymeleaf ===== -->
         <dependency>
             <groupId>org.springframework.boot</groupId>

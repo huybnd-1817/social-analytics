@@ -129,15 +129,15 @@
 
 #### JMS (ActiveMQ / RabbitMQ)
 
-- [ ] **D5-01** Add ActiveMQ (or RabbitMQ) dependency; configure broker in `application.properties`
-- [ ] **D5-02** Define queue name constant: `IMPORT_COMPLETED`
-- [ ] **D5-03** Implement `ImportEventProducer`
+- [x] **D5-01** Add ActiveMQ (or RabbitMQ) dependency; configure broker in `application.properties`
+- [x] **D5-02** Define queue name constant: `IMPORT_COMPLETED`
+- [x] **D5-03** Implement `ImportEventProducer`
   - After Excel import succeeds → publish `ImportCompletedMessage` (batchId, recordCount)
-- [ ] **D5-04** Implement `ImportEventListener`
+- [x] **D5-04** Implement `ImportEventListener`
   - `@JmsListener` on `IMPORT_COMPLETED`
   - Recalculate aggregated stats (total posts, per-platform count) and persist/cache
-- [ ] **D5-05** Configure DLQ for `IMPORT_COMPLETED`; verify failed messages land in DLQ
-- [ ] **D5-06** Test: publish → consume flow (embedded broker or Testcontainers)
+- [x] **D5-05** Configure DLQ for `IMPORT_COMPLETED`; verify failed messages land in DLQ
+- [x] **D5-06** Test: publish → consume flow (embedded broker or Testcontainers)
 
 #### WebSocket
 

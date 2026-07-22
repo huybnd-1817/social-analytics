@@ -25,4 +25,11 @@ public interface PostRepository extends JpaRepository<Post, Long> {
     // khớp partial unique index của bảng posts
     List<Post> findByStatusAndPlatformAndPlatformPostIdIn(
             PostStatus status, SocialProvider platform, Collection<String> platformPostIds);
+
+    // JMS listener: đếm tổng post ACTIVE để tính stats tổng hợp (nhất quán với per-platform counts bên dưới)
+    long countByStatus(PostStatus status);
+
+    // JMS listener: đếm số post ACTIVE theo từng platform để tính lại stats tổng hợp sau mỗi lần import
+    // (nhất quán với partial unique index WHERE status = 'ACTIVE' trên bảng posts)
+    long countByPlatformAndStatus(SocialProvider platform, PostStatus status);
 }

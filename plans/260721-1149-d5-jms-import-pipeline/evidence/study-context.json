@@ -1,0 +1,37 @@
+{
+  "task": "Implement D5-01 to D5-06: JMS async import-stats pipeline using embedded ActiveMQ Artemis (Spring Boot 4.1.0, Java 26)",
+  "acceptanceCriteria": [
+    "D5-01: spring-boot-starter-artemis and artemis-jakarta-server added to pom.xml; Artemis embedded config present in application.properties",
+    "D5-02: JmsQueues.IMPORT_COMPLETED constant defined; ImportCompletedMessage record created with batchId and recordCount",
+    "D5-03: ImportEventProducer listens to ImportSucceededEvent via @TransactionalEventListener(AFTER_COMMIT) and sends JMS message; ExcelImportService publishes ImportSucceededEvent after DB commit",
+    "D5-04: ImportEventListener @JmsListener recalculates per-platform ACTIVE post counts; updates ImportStatsCache; re-throws on exception for NAK→DLQ",
+    "D5-05: MappingJackson2MessageConverter bean configured (JSON/TextMessage, typeIdPropertyName=_type); DLQ routing via Artemis built-in auto-delivery",
+    "D5-06: Integration tests cover happy path, AFTER_COMMIT rollback guard, and DLQ accessibility; all 64 tests pass"
+  ],
+  "touchpoints": [
+    "pom.xml",
+    "src/main/resources/application.properties",
+    "src/test/resources/application-test.properties",
+    "src/main/java/com/sunasterisk/socialanalytics/messaging/JmsQueues.java",
+    "src/main/java/com/sunasterisk/socialanalytics/messaging/ImportCompletedMessage.java",
+    "src/main/java/com/sunasterisk/socialanalytics/messaging/ImportSucceededEvent.java",
+    "src/main/java/com/sunasterisk/socialanalytics/messaging/ImportEventProducer.java",
+    "src/main/java/com/sunasterisk/socialanalytics/messaging/ImportEventListener.java",
+    "src/main/java/com/sunasterisk/socialanalytics/messaging/ImportStatsCache.java",
+    "src/main/java/com/sunasterisk/socialanalytics/config/JmsConfig.java",
+    "src/main/java/com/sunasterisk/socialanalytics/service/ExcelImportService.java",
+    "src/main/java/com/sunasterisk/socialanalytics/repository/PostRepository.java",
+    "src/test/java/com/sunasterisk/socialanalytics/messaging/ImportJmsPipelineTest.java",
+    "src/test/java/com/sunasterisk/socialanalytics/service/ExcelImportServiceTest.java"
+  ],
+  "blastRadius": [
+    "ExcelImportServiceTest (modified — added @Mock ApplicationEventPublisher)",
+    "PostRepositoryTest (countByPlatformAndStatus added to interface)",
+    "All existing tests (64 total) — full suite must still pass"
+  ],
+  "contracts": [
+    "JMS queue IMPORT_COMPLETED: ImportCompletedMessage JSON over TextMessage",
+    "ImportStatsCache.get() returns Optional<ImportStats> — empty until first import",
+    "@TransactionalEventListener(AFTER_COMMIT): no JMS publish on rolled-back transaction"
+  ]
+}

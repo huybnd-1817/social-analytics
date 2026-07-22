@@ -1,0 +1,22 @@
+{
+  "score": 9.5,
+  "criticalCount": 0,
+  "decision": "SEALED",
+  "acceptanceCovered": [
+    "D5-01: spring-boot-starter-artemis and artemis-jakarta-server added to pom.xml; Artemis embedded config present in application.properties — verified: pom.xml contains both deps; application.properties spring.artemis.mode=embedded confirmed",
+    "D5-02: JmsQueues.IMPORT_COMPLETED constant defined; ImportCompletedMessage record created with batchId and recordCount — verified: JmsQueues.java constant confirmed; ImportCompletedMessage record (batchId, recordCount) without Serializable",
+    "D5-03: ImportEventProducer listens to ImportSucceededEvent via @TransactionalEventListener(AFTER_COMMIT) and sends JMS message; ExcelImportService publishes ImportSucceededEvent after DB commit — verified: ImportEventProducer.java @TransactionalEventListener(AFTER_COMMIT); ExcelImportService.java publishEvent call confirmed",
+    "D5-04: ImportEventListener @JmsListener recalculates per-platform ACTIVE post counts; updates ImportStatsCache; re-throws on exception for NAK→DLQ — verified: @JmsListener on IMPORT_COMPLETED; countByPlatformAndStatus for FACEBOOK/TWITTER ACTIVE; ImportStatsCache.update(); exception re-thrown",
+    "D5-05: MappingJackson2MessageConverter bean configured (JSON/TextMessage, typeIdPropertyName=_type); DLQ routing via Artemis built-in auto-delivery — verified: JmsConfig.java converter bean; DLQ.IMPORT_COMPLETED auto-created by Artemis on TC-03",
+    "D5-06: Integration tests cover happy path, AFTER_COMMIT rollback guard, and DLQ accessibility; all 64 tests pass — verified: ImportJmsPipelineTest TC-01/TC-02/TC-03; mvn test output: Tests run: 64, Failures: 0, Errors: 0, Skipped: 0 — BUILD SUCCESS"
+  ],
+  "regressionChecked": [
+    "ExcelImportServiceTest: 8 unit tests still pass after ApplicationEventPublisher @Mock added",
+    "PostRepositoryTest: 6 slice tests pass with new countByPlatformAndStatus method",
+    "Full suite 64 tests — no regressions in any pre-existing test class"
+  ],
+  "refuted": [],
+  "unproven": [],
+  "reachableRegressions": [],
+  "contractStatus": "PASSED"
+}
