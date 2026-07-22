@@ -26,6 +26,9 @@ class CrawlJobServiceTest {
     @Mock
     private PostRepository postRepository;
 
+    @Mock
+    private MetricsBroadcaster metricsBroadcaster;
+
     @InjectMocks
     private CrawlJobService crawlJobService;
 

@@ -23,6 +23,8 @@ public class CrawlJobService {
     private final SocialCrawlerService socialCrawlerService;
     // Truy vấn danh sách post cần crawl từ database
     private final PostRepository postRepository;
+    // Broadcast metrics realtime đến client qua WebSocket sau mỗi lần crawl
+    private final MetricsBroadcaster metricsBroadcaster;
     // AtomicReference đảm bảo đọc/ghi lastCrawledAt an toàn giữa nhiều thread mà không cần synchronized
     private final AtomicReference<Instant> lastCrawledAt = new AtomicReference<>();
 
@@ -56,6 +58,7 @@ public class CrawlJobService {
             // tránh hiển thị "vừa cập nhật" trên dashboard khi không có dữ liệu nào được ghi
             if (success > 0) {
                 lastCrawledAt.set(Instant.now());
+                metricsBroadcaster.broadcast("CRAWL_COMPLETE");
             }
         }
     }
