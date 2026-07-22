@@ -51,11 +51,11 @@ public class GlobalExceptionHandler {
                 .body(Map.of("error", "Data conflict: the resource violates a uniqueness or reference constraint"));
     }
 
-    // Import: file không hợp lệ (rỗng, sai định dạng, thiếu cột, v.v.) → 400
+    // Lỗi input từ client: giá trị enum không hợp lệ, file import sai định dạng, v.v. → 400
     // Không lộ stack trace; message từ service đã đủ mô tả cho client.
     @ExceptionHandler(IllegalArgumentException.class)
     public ResponseEntity<Map<String, String>> handleBadRequest(IllegalArgumentException ex) {
-        log.debug("Bad request (import validation): {}", ex.getMessage());
+        log.debug("Bad request: {}", ex.getMessage());
         return ResponseEntity.status(HttpStatus.BAD_REQUEST)
                 .body(Map.of("error", ex.getMessage()));
     }
