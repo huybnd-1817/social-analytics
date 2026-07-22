@@ -141,25 +141,25 @@
 
 #### WebSocket
 
-- [ ] **D5-07** Add Spring WebSocket + Messaging dependencies
-- [ ] **D5-08** Configure `WebSocketMessageBrokerConfigurer`
+- [x] **D5-07** Add Spring WebSocket + Messaging dependencies
+- [x] **D5-08** Configure `WebSocketMessageBrokerConfigurer`
   - Enable STOMP, broker topic `/topic/metrics-update`, app prefix `/app`
-- [ ] **D5-09** Implement `MetricsBroadcaster`
+- [x] **D5-09** Implement `MetricsBroadcaster`
   - `SimpMessagingTemplate.convertAndSend("/topic/metrics-update", payload)` after crawl job completes
   - Also broadcast after Excel import listener finishes
-- [ ] **D5-10** Implement frontend WebSocket client (SockJS + stomp.js)
+- [x] **D5-10** Implement frontend WebSocket client (SockJS + stomp.js)
   - Subscribe to `/topic/metrics-update`
   - On message: call `GET /chart-data` and refresh chart
 
 #### Charts
 
-- [ ] **D5-11** Implement `GET /chart-data`
+- [x] **D5-11** Implement `GET /chart-data`
   - Returns time-series JSON: `{ labels: [...dates], datasets: [{ platform, likes, shares }] }`
   - Supports query params: `platform`, `from`, `to`
-- [ ] **D5-12** Integrate Chart.js on dashboard page
+- [x] **D5-12** Integrate Chart.js on dashboard page
   - Line chart: likes over time
   - Bar chart: shares by platform
-- [ ] **D5-13** Test chart data endpoint with various filter combinations
+- [x] **D5-13** Test chart data endpoint with various filter combinations
 
 **Deliverables:** JMS pipeline working, charts update in realtime on crawl/import
 
