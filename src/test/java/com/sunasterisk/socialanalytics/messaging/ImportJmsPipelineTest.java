@@ -1,6 +1,5 @@
 package com.sunasterisk.socialanalytics.messaging;
 
-import jakarta.jms.ConnectionFactory;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -8,6 +7,7 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.jms.core.JmsTemplate;
 import org.springframework.test.context.ActiveProfiles;
+import org.springframework.test.context.bean.override.mockito.MockitoSpyBean;
 import org.springframework.transaction.PlatformTransactionManager;
 import org.springframework.transaction.support.TransactionTemplate;
 
@@ -15,6 +15,9 @@ import java.util.concurrent.TimeUnit;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.awaitility.Awaitility.await;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.atLeastOnce;
+import static org.mockito.Mockito.verify;
 
 /**
  * Integration test cho JMS import pipeline sử dụng embedded Artemis broker.
@@ -28,7 +31,7 @@ class ImportJmsPipelineTest {
     @Autowired private ImportStatsCache importStatsCache;
     @Autowired private ApplicationEventPublisher eventPublisher;
     @Autowired private PlatformTransactionManager transactionManager;
-    @Autowired private ConnectionFactory connectionFactory;
+    @MockitoSpyBean private ImportDlqHandler dlqHandler;
 
     @BeforeEach
     void resetCache() {
@@ -75,29 +78,19 @@ class ImportJmsPipelineTest {
     }
 
     /**
-     * TC-03: queue DLQ.IMPORT_COMPLETED có thể truy cập và giữ lại message.
+     * TC-03: ImportDlqHandler nhận và xử lý message từ DLQ.IMPORT_COMPLETED.
      *
-     * <p>Phạm vi: gửi trực tiếp vào DLQ và đọc lại, xác nhận queue được tự tạo
-     * và message được lưu giữ. Kiểm tra hạ tầng DLQ (Artemis auto-create-queues).
-     *
-     * <p>Ngoài phạm vi: luồng retry-rồi-DLQ là built-in của Artemis (không phải custom code)
-     * nên không kiểm tra ở đây. Luồng DLQ thực tế (listener throw → NACK → hết retry →
-     * Artemis chuyển sang DLQ) được đảm bảo bởi try/catch + re-throw trong ImportEventListener,
-     * nhưng để test end-to-end cần broker.xml với max-delivery-attempts ngắn —
-     * để lại như bước xác nhận thủ công.
+     * <p>Gửi trực tiếp vào DLQ (mô phỏng message đã hết retry) và xác nhận
+     * ImportDlqHandler.onDeadLetter() được gọi với đúng payload.
      */
     @Test
-    void dlqQueue_isAccessibleAndRetainsMessages() {
-        String dlqName = "DLQ." + JmsQueues.IMPORT_COMPLETED;
-
-        // Artemis tự tạo queue DLQ khi dùng lần đầu (auto-create-queues=true theo mặc định)
-        jmsTemplate.convertAndSend(dlqName, new ImportCompletedMessage(0L, 0));
-
-        JmsTemplate receiver = new JmsTemplate(connectionFactory);
-        receiver.setReceiveTimeout(3000L);
+    void dlqQueue_handlerProcessesDeadLetter() {
+        ImportCompletedMessage dead = new ImportCompletedMessage(99L, 0);
+        jmsTemplate.convertAndSend(JmsQueues.IMPORT_COMPLETED_DLQ, dead);
 
         await().atMost(5, TimeUnit.SECONDS)
                .pollInterval(200, TimeUnit.MILLISECONDS)
-               .until(() -> receiver.receive(dlqName) != null);
+               .untilAsserted(() ->
+                       verify(dlqHandler, atLeastOnce()).onDeadLetter(any(ImportCompletedMessage.class)));
     }
 }
