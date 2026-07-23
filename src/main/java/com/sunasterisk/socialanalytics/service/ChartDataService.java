@@ -10,39 +10,55 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.time.Instant;
 import java.time.LocalDate;
-import java.time.ZoneOffset;
+import java.time.ZoneId;
+import java.time.temporal.ChronoUnit;
 import java.util.*;
 
 @Service
 @RequiredArgsConstructor
 public class ChartDataService {
 
+    private static final int DEFAULT_WINDOW_DAYS = 30;
+    private static final int MAX_WINDOW_DAYS     = 90;
+
     private final SocialMetricRepository socialMetricRepository;
 
     @Transactional(readOnly = true)
-    public ChartDataResponse getChartData(String platform, Instant from, Instant to) {
+    public ChartDataResponse getChartData(String platform, Instant from, Instant to, ZoneId zone) {
         if (platform != null) SocialProvider.valueOf(platform.toUpperCase()); // validate enum; throws → 400
         String platformStr = platform != null ? platform.toUpperCase() : null;
 
-        // Dispatch sang 4 query riêng — tránh nullable parameter trong JPQL:
-        // PostgreSQL không infer được type cho null (enum, timestamptz) trong prepared statement.
-        boolean hasPlatform  = platformStr != null;
-        boolean hasDateRange = from != null && to != null;
-
-        List<SocialMetric> metrics;
-        if (hasPlatform && hasDateRange) {
-            metrics = socialMetricRepository.findByPlatformAndDateRange(platformStr, from, to);
-        } else if (hasPlatform) {
-            metrics = socialMetricRepository.findByPlatform(platformStr);
-        } else if (hasDateRange) {
-            metrics = socialMetricRepository.findByDateRange(from, to);
-        } else {
-            metrics = socialMetricRepository.findAllWithPost();
+        // Chỉ truyền một đầu → 400 (tránh filter bị bỏ qua im lặng)
+        if ((from == null) != (to == null)) {
+            throw new IllegalArgumentException("Both 'from' and 'to' must be provided together, or omit both");
         }
-        return aggregate(metrics);
+
+        // Khi không truyền filter ngày, mặc định lấy DEFAULT_WINDOW_DAYS ngày gần nhất.
+        // Khi truyền tường minh, kiểm tra không vượt quá MAX_WINDOW_DAYS để tránh full-table scan.
+        Instant effectiveFrom;
+        Instant effectiveTo;
+        if (from == null) {
+            effectiveTo   = Instant.now();
+            effectiveFrom = effectiveTo.minus(DEFAULT_WINDOW_DAYS, ChronoUnit.DAYS);
+        } else {
+            long days = ChronoUnit.DAYS.between(from, to);
+            if (days > MAX_WINDOW_DAYS) {
+                throw new IllegalArgumentException(
+                        "Date range must not exceed " + MAX_WINDOW_DAYS + " days (requested: " + days + ")");
+            }
+            effectiveFrom = from;
+            effectiveTo   = to;
+        }
+
+        // Luôn dùng date-range query (PostgreSQL không infer type cho null trong prepared statement)
+        boolean hasPlatform = platformStr != null;
+        List<SocialMetric> metrics = hasPlatform
+                ? socialMetricRepository.findByPlatformAndDateRange(platformStr, effectiveFrom, effectiveTo)
+                : socialMetricRepository.findByDateRange(effectiveFrom, effectiveTo);
+        return aggregate(metrics, zone);
     }
 
-    private ChartDataResponse aggregate(List<SocialMetric> metrics) {
+    private ChartDataResponse aggregate(List<SocialMetric> metrics, ZoneId zone) {
         /*
           TreeMap giữ ngày theo thứ tự tăng dần; EnumMap bên trong giữ thứ tự platform nhất quán
           VD:
@@ -67,7 +83,7 @@ public class ChartDataService {
         Set<SocialProvider> seenPlatforms = new TreeSet<>(Comparator.comparing(Enum::name));
 
         for (SocialMetric m : metrics) {
-            LocalDate date = m.getCrawledAt().atZone(ZoneOffset.UTC).toLocalDate();
+            LocalDate date = m.getCrawledAt().atZone(zone).toLocalDate();
             SocialProvider p = m.getPost().getPlatform();
             seenPlatforms.add(p);
             // Lấy map<platform → stats> của ngày `date`, tạo mới nếu chưa có

@@ -305,9 +305,11 @@
         }
     }
 
+    const browserTz = encodeURIComponent(Intl.DateTimeFormat().resolvedOptions().timeZone);
+
     // Tải dữ liệu chart ngay khi trang mở
     function initCharts() {
-        fetch('/chart-data')
+        fetch('/chart-data?timezone=' + browserTz)
             .then(function (r) { return r.ok ? r.json() : null; })
             .then(function (data) { if (data) refreshCharts(data); });
     }
@@ -339,7 +341,7 @@
         update.textContent = payload.event + ' · ' + time;
         update.style.display = '';
 
-        fetch('/chart-data')
+        fetch('/chart-data?timezone=' + browserTz)
             .then(function (r) { return r.ok ? r.json() : null; })
             .then(function (data) { if (data) refreshCharts(data); });
     }

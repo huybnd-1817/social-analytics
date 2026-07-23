@@ -11,7 +11,9 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
+import java.time.DateTimeException;
 import java.time.Instant;
+import java.time.ZoneId;
 
 @RestController
 @RequestMapping("/chart-data")
@@ -26,7 +28,15 @@ public class ChartController {
     public ChartDataResponse chartData(
             @RequestParam(required = false) String platform,
             @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) Instant from,
-            @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) Instant to) {
-        return chartDataService.getChartData(platform, from, to);
+            @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) Instant to,
+            @RequestParam(required = false, defaultValue = "UTC") String timezone) {
+        ZoneId zone;
+        try {
+            zone = ZoneId.of(timezone);
+        } catch (DateTimeException e) {
+            String display = timezone.length() > 64 ? timezone.substring(0, 64) + "…" : timezone;
+            throw new IllegalArgumentException("Invalid timezone: " + display);
+        }
+        return chartDataService.getChartData(platform, from, to, zone);
     }
 }

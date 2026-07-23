@@ -51,7 +51,6 @@ public class SecurityConfig {
         // review lại khi thêm endpoint write có browser-form flow.
         http.csrf(csrf -> csrf
                 .ignoringRequestMatchers(
-                        "/ws/**",       // WebSocket handshake — GET-based but SockJS fallbacks use POST
                         "/import-posts",
                         "/posts/**",
                         "/metrics/**"
