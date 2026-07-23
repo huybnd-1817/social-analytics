@@ -26,7 +26,10 @@ public class SecurityConfig {
                             "/swagger-ui/**", "/swagger-ui.html", // UI của Swagger để xem API docs
                             "/v3/api-docs/**",                // JSON spec của OpenAPI/Swagger
                             "/css/**", "/js/**", "/images/**", "/webjars/**", // Static resources (CSS, JS, ảnh, webjar libraries)
-                            "/error"                          // Trang error mặc định của Spring Boot (tránh bị chặn login khi có exception)
+                            "/error",                         // Trang error mặc định của Spring Boot (tránh bị chặn login khi có exception)
+                            "/ws/",                           // D6: SOAP POST endpoint (MessageDispatcherServlet root) — WebServiceTemplate gọi nội bộ
+                            "/ws/exchange-rate.wsdl",         // D6: WSDL retrieval — không cần auth
+                            "/exchange-rate"                  // D6: REST facade cho SOAP client
                     ).permitAll() // Cho phép tất cả các path trên truy cập mà không cần đăng nhập
                     .anyRequest().authenticated() // Mọi request còn lại đều bắt buộc phải authenticated
             )
@@ -53,7 +56,8 @@ public class SecurityConfig {
                 .ignoringRequestMatchers(
                         "/import-posts",
                         "/posts/**",
-                        "/metrics/**"
+                        "/metrics/**",
+                        "/ws/**"  // D6: SOAP POST từ WebServiceTemplate không mang theo CSRF token
                 )
         );
         return http.build();
