@@ -1,0 +1,11 @@
+{
+  "commands": [
+    {
+      "command": "mvn test",
+      "exitCode": 0,
+      "status": "pass",
+      "summary": "Tests run: 100, Failures: 0, Errors: 0, Skipped: 0 — BUILD SUCCESS (includes ExcelImportIntegrationTest TC-01/TC-02/TC-03 and CrawlJobIntegrationTest TC-01/TC-02/TC-03)",
+      "ts": "2026-07-24T17:59:39.000+07:00"
+    }
+  ]
+}

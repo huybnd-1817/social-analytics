@@ -639,13 +639,44 @@ open target/site/jacoco/index.html
 
 ---
 
-### 6.7 Integration test: import → JMS → stats
+### 6.7 Integration tests (D6-09, D6-10, D6-11)
+
+Chạy toàn bộ integration tests:
 
 ```bash
 ./mvnw test -Dtest="*IntegrationTest" --no-transfer-progress
 ```
 
-✅ Test pass: import Excel → post tạo trong DB → `IMPORT_COMPLETED` published → stats cache cập nhật.
+#### ExcelImportIntegrationTest (D6-09)
+
+Ba test cases:
+
+| Test | Kết quả mong đợi |
+|---|---|
+| `uploadValidExcel_persistsPostsAndUpdatesStats` | Posts tạo trong DB · `IMPORT_COMPLETED` published · `ImportStatsCache` cập nhật · `MetricsBroadcaster.broadcast("IMPORT_COMPLETE")` được gọi |
+| `uploadDuplicateExcel_returnsFailed_noPostsAdded` | Trả về failed status · không thêm posts trùng |
+| `uploadWithoutAuth_redirectsToLogin` | HTTP 302 → `/login` |
+
+#### CrawlJobIntegrationTest (D6-10)
+
+Ba test cases:
+
+| Test | Kết quả mong đợi |
+|---|---|
+| `crawlJob_savesOneMetricPerPostAndBroadcasts` | Một `SocialMetric` row per active post · `MetricsBroadcaster.broadcast("CRAWL_COMPLETE")` được gọi đúng 1 lần |
+| `crawlJob_skipsDeletedPosts` | Soft-deleted posts không tạo metric mới |
+| `crawlJob_updatesLastCrawledAt` | `lastCrawledAt` được cập nhật sau khi job chạy |
+
+#### Jacoco coverage gate (D6-11)
+
+Jacoco được cấu hình trong `pom.xml` với ngưỡng tối thiểu **70% instruction coverage**. Build thất bại nếu không đạt:
+
+```bash
+./mvnw verify --no-transfer-progress
+open target/site/jacoco/index.html
+```
+
+✅ `BUILD SUCCESS` — toàn bộ `*IntegrationTest` pass, coverage ≥ 70%.
 
 ---
 
@@ -658,4 +689,4 @@ open target/site/jacoco/index.html
 | 3 | `[ ]` Unauthenticated → 302 · `[ ]` Login Facebook/Twitter OK · `[ ]` Logout thành công |
 | 4 | `[ ]` Log "crawl job done" xuất hiện · `[ ]` social_metrics có rows · `[ ]` /metrics/last-updated không null |
 | 5 | `[ ]` WS dot xanh · `[ ]` Import → WS frame "IMPORT_COMPLETE" · `[ ]` Chart render sau broadcast |
-| 6 | `[ ]` WSDL 200 (no auth) · `[ ]` USD rate=25350.0 · `[ ]` EUR lowercase → EUR/27500.0 · `[ ]` XYZ rate=0.0 · `[ ]` Direct SOAP POST 200 · `[ ]` Export cột đúng thứ tự · `[ ]` Test suite 0 failures |
+| 6 | `[ ]` WSDL 200 (no auth) · `[ ]` USD rate=25350.0 · `[ ]` EUR lowercase → EUR/27500.0 · `[ ]` XYZ rate=0.0 · `[ ]` Direct SOAP POST 200 · `[ ]` Export cột đúng thứ tự · `[ ]` ExcelImportIntegrationTest pass · `[ ]` CrawlJobIntegrationTest pass · `[ ]` Coverage ≥ 70% |

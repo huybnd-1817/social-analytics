@@ -190,9 +190,9 @@
 
 #### Integration Tests
 
-- [ ] **D6-09** Write full integration test: upload Excel → verify posts in DB → verify `IMPORT_COMPLETED` published → verify aggregated stats updated
-- [ ] **D6-10** Write integration test: crawl job triggers → verify new `SocialMetric` row saved → verify WebSocket broadcast
-- [ ] **D6-11** Run full test suite; fix any failures; confirm coverage ≥ 70%
+- [x] **D6-09** Write full integration test: upload Excel → verify posts in DB → verify `IMPORT_COMPLETED` published → verify aggregated stats updated
+- [x] **D6-10** Write integration test: crawl job triggers → verify new `SocialMetric` row saved → verify WebSocket broadcast
+- [x] **D6-11** Run full test suite; fix any failures; confirm coverage ≥ 70%
 
 #### Final Polish
 

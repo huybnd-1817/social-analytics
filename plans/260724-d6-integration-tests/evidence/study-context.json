@@ -1,0 +1,29 @@
+{
+  "task": "Implement D6-09 to D6-11: full @SpringBootTest integration tests for the Excel import pipeline (JMS end-to-end) and crawl job pipeline (async metrics + WebSocket broadcast), plus Jacoco 70% instruction coverage gate",
+  "mode": "interactive",
+  "acceptanceCriteria": [
+    "D6-09: POST /import-posts → posts persisted in DB → IMPORT_COMPLETED JMS published (AFTER_COMMIT) → ImportStatsCache updated → MetricsBroadcaster.broadcast('IMPORT_COMPLETE') called; TC-01 valid upload, TC-02 duplicate rejected, TC-03 unauthenticated redirect",
+    "D6-10: CrawlJobService.updateSocialMetricsJob() → one SocialMetric row per ACTIVE post saved → MetricsBroadcaster.broadcast('CRAWL_COMPLETE') called; TC-01 save + broadcast, TC-02 DELETED posts skipped, TC-03 lastCrawledAt updated",
+    "D6-11: Full mvn test suite passes (100 tests, 0 failures); Jacoco check goal bound to verify phase with minimum 0.70 INSTRUCTION COVEREDRATIO; BUILD SUCCESS"
+  ],
+  "touchpoints": [
+    "src/test/java/com/sunasterisk/socialanalytics/integration/ExcelImportIntegrationTest.java",
+    "src/test/java/com/sunasterisk/socialanalytics/integration/CrawlJobIntegrationTest.java",
+    "src/test/java/com/sunasterisk/socialanalytics/util/ExcelFixtureBuilder.java",
+    "src/main/java/com/sunasterisk/socialanalytics/messaging/ImportStatsCache.java",
+    "pom.xml"
+  ],
+  "blastRadius": [
+    "All 97 pre-existing tests — full suite must pass after new integration tests added",
+    "ExcelImportIntegrationTest: @TransactionalEventListener(AFTER_COMMIT) behavior requires non-@Transactional test class",
+    "CrawlJobIntegrationTest: @Async + @Transactional proxy ordering — allOf().join() must unblock only after TX commits",
+    "ImportStatsCache.reset() visibility — changed package-private to public for cross-package test cleanup",
+    "Jacoco coverage gate: new 70% minimum must not break existing build"
+  ],
+  "contracts": [
+    "ExcelImportIntegrationTest: user() post-processor (not @WithMockUser) for auth in @SpringBootTest",
+    "CrawlJobIntegrationTest: no Awaitility needed — crawlJobService.updateSocialMetricsJob() blocks via allOf().join()",
+    "Jacoco: jacoco-maven-plugin check goal bound to verify phase, INSTRUCTION COVEREDRATIO >= 0.70",
+    "ImportStatsCache.reset(): public method for test teardown across packages"
+  ]
+}
