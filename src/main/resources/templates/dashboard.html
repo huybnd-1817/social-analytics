@@ -13,8 +13,14 @@
             background: #f0f2f5;
             min-height: 100vh;
             display: flex;
+            flex-direction: column;
             align-items: center;
-            justify-content: center;
+            padding: 2rem 1rem;
+        }
+
+        .container {
+            width: 100%;
+            max-width: 960px;
         }
 
         .card {
@@ -24,6 +30,7 @@
             padding: 2.5rem 2rem;
             width: 100%;
             max-width: 420px;
+            margin: 0 auto 2rem;
         }
 
         h1 {
@@ -96,10 +103,62 @@
         }
 
         .btn-logout:hover { background: #e5e7eb; }
+
+        .live-bar {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            margin-bottom: 1.25rem;
+            padding: 0.5rem 0.75rem;
+            border-radius: 6px;
+            background: #f9fafb;
+            border: 1px solid #e5e7eb;
+            font-size: 0.82rem;
+        }
+
+        .ws-dot {
+            width: 8px; height: 8px;
+            border-radius: 50%;
+            flex-shrink: 0;
+        }
+
+        .ws-connecting { background: #f59e0b; }
+        .ws-connected  { background: #10b981; }
+        .ws-error      { background: #ef4444; }
+
+        .ws-label { color: #6b7280; }
+
+        .ws-update {
+            margin-left: auto;
+            color: #374151;
+            font-weight: 500;
+        }
+
+        /* Charts */
+        .charts {
+            display: flex;
+            gap: 1.5rem;
+            flex-wrap: wrap;
+        }
+
+        .chart-card {
+            flex: 1 1 380px;
+            background: #fff;
+            border-radius: 8px;
+            box-shadow: 0 2px 12px rgba(0,0,0,0.10);
+            padding: 1.5rem;
+        }
+
+        .chart-title {
+            font-size: 0.9rem;
+            font-weight: 600;
+            color: #374151;
+            margin-bottom: 1rem;
+        }
     </style>
 </head>
 <body>
-<main>
+<div class="container">
     <div class="card">
         <h1>Social Analytics</h1>
         <p class="subtitle" th:text="'Welcome, ' + ${name}">Welcome, User</p>
@@ -128,10 +187,167 @@
             </tr>
         </table>
 
+        <!-- D05-10: live metrics status bar -->
+        <div class="live-bar">
+            <span id="wsDot" class="ws-dot ws-connecting"></span>
+            <span id="wsLabel" class="ws-label">Connecting…</span>
+            <span id="wsUpdate" class="ws-update" style="display:none"></span>
+        </div>
+
         <form th:action="@{/logout}" method="post">
             <button type="submit" class="btn-logout">Logout</button>
         </form>
     </div>
-</main>
+
+    <!-- D05-12: charts -->
+    <div class="charts">
+        <div class="chart-card">
+            <div class="chart-title">Likes over Time</div>
+            <canvas id="likesChart"></canvas>
+        </div>
+        <div class="chart-card">
+            <div class="chart-title">Shares by Platform</div>
+            <canvas id="sharesChart"></canvas>
+        </div>
+    </div>
+</div>
+
+<!-- @stomp/stompjs v7 — native WebSocket STOMP client (SockJS removed in Spring 7) -->
+<script src="https://cdn.jsdelivr.net/npm/@stomp/stompjs@7/bundles/stomp.umd.min.js"></script>
+<!-- Chart.js v4 -->
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4/dist/chart.umd.min.js"></script>
+<script>
+(function () {
+    const dot    = document.getElementById('wsDot');
+    const label  = document.getElementById('wsLabel');
+    const update = document.getElementById('wsUpdate');
+
+    // Màu theo platform — giữ nhất quán giữa line chart và bar chart
+    const PLATFORM_COLORS = {
+        FACEBOOK: '#1877f2',
+        TWITTER:  '#14171A'
+    };
+
+    function colorFor(platform) {
+        return PLATFORM_COLORS[platform] || '#6b7280';
+    }
+
+    function setStatus(state, text) {
+        dot.className = 'ws-dot ws-' + state;
+        label.textContent = text;
+    }
+
+    /* ---- Charts ---- */
+
+    let likesChart  = null;
+    let sharesChart = null;
+
+    function refreshCharts(data) {
+        // Line chart: likes theo ngày, mỗi platform một đường
+        var lineDatasets = data.datasets.map(function (d) {
+            var color = colorFor(d.platform);
+            return {
+                label: d.platform,
+                data: d.likes,
+                borderColor: color,
+                backgroundColor: color + '33',
+                tension: 0.3,
+                fill: false,
+                pointRadius: 3
+            };
+        });
+
+        if (likesChart) {
+            likesChart.data.labels   = data.labels;
+            likesChart.data.datasets = lineDatasets;
+            likesChart.update();
+        } else {
+            likesChart = new Chart(document.getElementById('likesChart'), {
+                type: 'line',
+                data: { labels: data.labels, datasets: lineDatasets },
+                options: {
+                    responsive: true,
+                    plugins: { legend: { position: 'top' } },
+                    scales:  { y: { beginAtZero: true } }
+                }
+            });
+        }
+
+        // Bar chart: tổng shares theo platform
+        var barLabels = data.datasets.map(function (d) { return d.platform; });
+        var barData   = data.datasets.map(function (d) {
+            return d.shares.reduce(function (sum, v) { return sum + v; }, 0);
+        });
+        var barColors = barLabels.map(colorFor);
+
+        if (sharesChart) {
+            sharesChart.data.labels                   = barLabels;
+            sharesChart.data.datasets[0].data         = barData;
+            sharesChart.data.datasets[0].backgroundColor = barColors;
+            sharesChart.update();
+        } else {
+            sharesChart = new Chart(document.getElementById('sharesChart'), {
+                type: 'bar',
+                data: {
+                    labels: barLabels,
+                    datasets: [{
+                        label: 'Total Shares',
+                        data: barData,
+                        backgroundColor: barColors
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    plugins: { legend: { display: false } },
+                    scales:  { y: { beginAtZero: true } }
+                }
+            });
+        }
+    }
+
+    const browserTz = encodeURIComponent(Intl.DateTimeFormat().resolvedOptions().timeZone);
+
+    // Tải dữ liệu chart ngay khi trang mở
+    function initCharts() {
+        fetch('/chart-data?timezone=' + browserTz)
+            .then(function (r) { return r.ok ? r.json() : null; })
+            .then(function (data) { if (data) refreshCharts(data); });
+    }
+
+    /* ---- WebSocket ---- */
+
+    const wsUrl = (location.protocol === 'https:' ? 'wss:' : 'ws:')
+                + '//' + location.host + '/ws';
+
+    const client = new StompJs.Client({
+        brokerURL: wsUrl,
+        reconnectDelay: 5000,
+        onConnect: function () {
+            setStatus('connected', 'Live');
+            client.subscribe('/topic/metrics-update', function (msg) {
+                const payload = JSON.parse(msg.body);
+                onMetricsUpdate(payload);
+            });
+        },
+        onDisconnect:     function () { setStatus('error', 'Disconnected'); },
+        onStompError:     function () { setStatus('error', 'Error'); },
+        onWebSocketError: function () { setStatus('error', 'Connection failed'); }
+    });
+
+    client.activate();
+
+    function onMetricsUpdate(payload) {
+        const time = new Date(payload.updatedAt).toLocaleTimeString();
+        update.textContent = payload.event + ' · ' + time;
+        update.style.display = '';
+
+        fetch('/chart-data?timezone=' + browserTz)
+            .then(function (r) { return r.ok ? r.json() : null; })
+            .then(function (data) { if (data) refreshCharts(data); });
+    }
+
+    initCharts();
+}());
+</script>
 </body>
 </html>

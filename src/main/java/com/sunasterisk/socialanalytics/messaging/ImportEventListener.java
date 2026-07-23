@@ -4,6 +4,7 @@ import com.sunasterisk.socialanalytics.entity.PostStatus;
 import com.sunasterisk.socialanalytics.entity.SocialProvider;
 import com.sunasterisk.socialanalytics.messaging.ImportStatsCache.ImportStats;
 import com.sunasterisk.socialanalytics.repository.PostRepository;
+import com.sunasterisk.socialanalytics.service.MetricsBroadcaster;
 import lombok.RequiredArgsConstructor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -21,6 +22,8 @@ public class ImportEventListener {
 
     private final PostRepository postRepository;
     private final ImportStatsCache importStatsCache;
+    // Broadcast metrics realtime đến client qua WebSocket sau khi xử lý import event
+    private final MetricsBroadcaster metricsBroadcaster;
 
     /**
      * Khi có exception: re-throw để Spring JMS NACK message → Artemis tự retry →
@@ -41,6 +44,7 @@ public class ImportEventListener {
 
             log.info("Stats recalculated after batchId={}: total={}, facebook={}, twitter={}",
                     message.batchId(), totalPosts, facebook, twitter);
+            metricsBroadcaster.broadcast("IMPORT_COMPLETE");
         } catch (Exception ex) {
             log.error("Stats recalculation failed for batchId={}: {}",
                     message.batchId(), ex.getMessage(), ex);

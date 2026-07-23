@@ -129,6 +129,12 @@
             <artifactId>artemis-server</artifactId>
         </dependency>
 
+        <!-- ===== D5: Spring WebSocket + STOMP messaging ===== -->
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-websocket</artifactId>
+        </dependency>
+
         <!-- ===== D3: Spring Security + OAuth2 + Thymeleaf ===== -->
         <dependency>
             <groupId>org.springframework.boot</groupId>
