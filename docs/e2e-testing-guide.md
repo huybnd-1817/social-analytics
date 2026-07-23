@@ -539,16 +539,72 @@ curl -v http://localhost:8080/ 2>&1 | grep "Location:"
 
 ---
 
-### 6.5 Export với @ExcelColumn annotation
+### 6.5 Export với @ExcelColumn annotation (Swagger UI)
 
-Import vài posts (Day 2.2) → crawl chạy để có SocialMetric → export:
+#### 6.5.1 Khởi động server
+
 ```bash
-curl -b "JSESSIONID=<cookie>" \
-  -o report-annotated.xlsx \
-  http://localhost:8080/export-report
+./mvnw spring-boot:run
 ```
 
-Mở file: ✅ Cột xuất hiện đúng thứ tự `order` trong `@ExcelColumn`, header đúng `headerName`.
+Mở **`http://localhost:8080/swagger-ui.html`**.
+
+#### 6.5.2 Đăng nhập
+
+Swagger UI không có form login tích hợp. Mở tab riêng vào `http://localhost:8080/login`, đăng nhập xong quay lại tab Swagger — session cookie tự động gắn theo cùng trình duyệt.
+
+#### 6.5.3 Import posts để có dữ liệu
+
+Tag **Import** → `POST /import-posts` → **Try it out**
+
+1. **Choose File** → chọn file `.xlsx` có data posts (xem mục 2.1)
+2. Click **Execute**
+3. Response mong đợi — `200 OK`:
+```json
+{
+  "batchId": 1,
+  "totalRecords": 3,
+  "successRecords": 3,
+  "failedRecords": 0,
+  "status": "DONE"
+}
+```
+
+> `status` có thể là `DONE` (thành công) hoặc `FAILED` (toàn bộ bị rollback). Không có trạng thái thành công một phần.
+
+#### 6.5.4 Gọi export
+
+Tag **Export** → `GET /export-report` → **Try it out** → **Execute**
+
+Response headers:
+```
+Content-Disposition: attachment; filename="report_20260724000000.xlsx"
+Content-Type: application/vnd.openxmlformats-officedocument.spreadsheetml.sheet
+```
+
+Click **Download file** bên dưới response body.
+
+#### 6.5.5 Kiểm tra file
+
+Mở `report_*.xlsx`. Xác nhận:
+
+| # | Kiểm tra | Kết quả mong đợi |
+|---|---|---|
+| 1 | Row 1 là header | 13 cột: `platform` → `crawled_at` |
+| 2 | Thứ tự cột | Đúng `order = 1..13` của `@ExcelColumn` trên `ExportRowModel` |
+| 3 | Cột `platform` | `FACEBOOK` hoặc `TWITTER` |
+| 4 | Cột `published_at` | Định dạng `yyyy-MM-dd HH:mm:ss` (UTC) |
+| 5 | Cột `crawled_at` | Datetime nếu có metric, **ô trắng** nếu chưa |
+| 6 | Cột `likes_count`…`impressions` | Số nguyên ≥ 0 |
+| 7 | Không có cột `content` | Trường TEXT bị loại có chủ đích |
+
+#### 6.5.6 Xác nhận bằng unit test
+
+```bash
+./mvnw test -Dtest="ExcelExportServiceTest,ReflectionRowWriterTest" --no-transfer-progress
+```
+
+✅ `Tests run: 15, Failures: 0, Errors: 0` — BUILD SUCCESS.
 
 ---
 

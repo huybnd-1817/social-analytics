@@ -186,7 +186,7 @@
   - Attributes: `headerName`, `order`, `format`
 - [x] **D6-07** Refactor `ExcelExportService` to use `@ExcelColumn` reflection scan
   - Auto-discover annotated fields → build headers + rows dynamically
-- [ ] **D6-08** Apply `@ExcelColumn` to `Post` and `SocialMetric`; verify export output
+- [x] **D6-08** Apply `@ExcelColumn` to `Post` and `SocialMetric`; verify export output
 
 #### Integration Tests
 
