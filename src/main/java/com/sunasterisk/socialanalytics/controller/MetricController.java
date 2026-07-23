@@ -5,6 +5,7 @@ import com.sunasterisk.socialanalytics.dto.MetricResponse;
 import com.sunasterisk.socialanalytics.service.CrawlJobService;
 import com.sunasterisk.socialanalytics.service.MetricService;
 import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
 import org.springdoc.core.annotations.ParameterObject;
@@ -27,6 +28,7 @@ public class MetricController {
 
     @GetMapping
     @Operation(summary = "List all metric snapshots (paginated)")
+    @ApiResponse(responseCode = "200", description = "Page of metric snapshots")
     public Page<MetricResponse> list(
             @ParameterObject
             @PageableDefault(size = 20, sort = "crawledAt", direction = Sort.Direction.DESC) Pageable pageable) {
@@ -35,6 +37,7 @@ public class MetricController {
 
     @GetMapping("/last-updated")
     @Operation(summary = "Timestamp of the last completed crawl job")
+    @ApiResponse(responseCode = "200", description = "Always 200; lastCrawledAt is null when no crawl has run yet")
     public LastUpdatedResponse lastUpdated() {
         return new LastUpdatedResponse(crawlJobService.getLastCrawledAt());
     }

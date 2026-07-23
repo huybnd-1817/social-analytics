@@ -3,6 +3,9 @@ package com.sunasterisk.socialanalytics.controller;
 import com.sunasterisk.socialanalytics.dto.ChartDataResponse;
 import com.sunasterisk.socialanalytics.service.ChartDataService;
 import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.Parameter;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
 import org.springframework.format.annotation.DateTimeFormat;
@@ -25,10 +28,18 @@ public class ChartController {
 
     @GetMapping
     @Operation(summary = "Likes and shares time-series, optionally filtered by platform and date range")
+    @ApiResponses({
+        @ApiResponse(responseCode = "200", description = "Chart data returned"),
+        @ApiResponse(responseCode = "400", description = "Invalid timezone identifier or date-time format")
+    })
     public ChartDataResponse chartData(
+            @Parameter(description = "Social platform filter (e.g. facebook, twitter). Omit for all platforms.")
             @RequestParam(required = false) String platform,
+            @Parameter(description = "Start of date range (ISO-8601, e.g. 2026-01-01T00:00:00Z)")
             @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) Instant from,
+            @Parameter(description = "End of date range (ISO-8601, e.g. 2026-12-31T23:59:59Z)")
             @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) Instant to,
+            @Parameter(description = "IANA timezone for date grouping (default: UTC)")
             @RequestParam(required = false, defaultValue = "UTC") String timezone) {
         ZoneId zone;
         try {

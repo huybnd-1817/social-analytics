@@ -1,0 +1,29 @@
+{
+  "task": "D6-12 to D6-15: Finalize Swagger docs, create README.md, package JAR",
+  "mode": "interactive",
+  "acceptanceCriteria": [
+    "swagger annotations compile and render correctly",
+    "readme.md exists with setup and demo steps",
+    "mvnw clean package exits 0 with jar present",
+    "no regressions in existing tests"
+  ],
+  "touchpoints": [
+    "src/main/java/com/sunasterisk/socialanalytics/controller/PostController.java",
+    "src/main/java/com/sunasterisk/socialanalytics/controller/ChartController.java",
+    "src/main/java/com/sunasterisk/socialanalytics/controller/ExchangeRateController.java",
+    "src/main/java/com/sunasterisk/socialanalytics/controller/ImportController.java",
+    "src/main/java/com/sunasterisk/socialanalytics/controller/ExcelExportController.java",
+    "src/main/java/com/sunasterisk/socialanalytics/controller/MetricController.java",
+    "README.md"
+  ],
+  "blastRadius": [
+    "Swagger/OpenAPI surface — annotation-only changes, no logic",
+    "README.md — new file, additive only",
+    "JAR build — packaging only, no runtime behavior change"
+  ],
+  "contracts": [
+    "No new API endpoints introduced",
+    "No request/response schema changes",
+    "No auth or security changes"
+  ]
+}
