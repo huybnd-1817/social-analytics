@@ -338,22 +338,208 @@ http://localhost:8161/console
 
 ---
 
-## Day 6 — SOAP + Advanced Reflection + Integration Tests
+## Day 6 — SOAP WebService + Advanced Reflection + Integration Tests
 
-**Mục tiêu:** SOAP client hoạt động, @ExcelColumn export đúng thứ tự, full test suite xanh.
+**Mục tiêu:** SOAP endpoint expose WSDL, SOAP client gọi nội bộ qua REST facade, security đúng, @ExcelColumn export đúng thứ tự, full test suite xanh.
 
-### 6.1 GET /exchange-rate (SOAP client)
+---
+
+### SOAP WebService — Luồng tổng quan
+
+```
+Browser / curl
+     │
+     ▼
+GET  /exchange-rate?currency=USD          ← ExchangeRateController (Spring MVC)
+     │
+     ▼
+ExchangeRateWebServiceClient              ← WebServiceTemplate
+     │  SOAP POST /ws/
+     ▼
+MessageDispatcherServlet (/ws/*)          ← Spring-WS (tách biệt MVC DispatcherServlet)
+     │
+     ▼
+ExchangeRateEndpoint (@PayloadRoot)       ← route bằng namespace × localPart, không phải URL
+     │
+     ▼
+GetExchangeRateResponse (JAXB → JSON)
+```
+
+---
+
+### 6.1 WSDL retrieval
+
+WSDL được tự động sinh từ XSD bởi `DefaultWsdl11Definition`. Path trong `permitAll()` — không cần login.
 
 ```bash
-curl -b "JSESSIONID=<cookie>" "http://localhost:8080/exchange-rate?currency=USD"
+curl -v http://localhost:8080/ws/exchange-rate.wsdl
 ```
-✅ Response:
-```json
-{"currency": "USD", "rate": 23500.0}
-```
-(Giá trị mock, không phải live rate.)
 
-### 6.2 Export với @ExcelColumn annotation
+✅ HTTP 200, `Content-Type: text/xml`, body chứa:
+```xml
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<wsdl:definitions xmlns:wsdl="http://schemas.xmlsoap.org/wsdl/" ...
+  targetNamespace="http://socialanalytics.sunasterisk.com/exchangerate">
+  <wsdl:message name="GetExchangeRateRequest">...</wsdl:message>
+  <wsdl:message name="GetExchangeRateResponse">...</wsdl:message>
+  <wsdl:portType name="ExchangeRatePort">...</wsdl:portType>
+  ...
+</wsdl:definitions>
+```
+
+Kiểm tra `targetNamespace` phải là `http://socialanalytics.sunasterisk.com/exchangerate`.
+
+---
+
+### 6.2 REST facade → SOAP client (GET /exchange-rate)
+
+Controller REST gọi nội bộ qua SOAP. Path `/exchange-rate` trong `permitAll()` — không cần login.
+
+#### 6.2.1 Các currency được hỗ trợ
+
+```bash
+curl "http://localhost:8080/exchange-rate?currency=USD"
+```
+✅ `{"currency":"USD","rate":25350.0}`
+
+```bash
+curl "http://localhost:8080/exchange-rate?currency=EUR"
+```
+✅ `{"currency":"EUR","rate":27500.0}`
+
+```bash
+curl "http://localhost:8080/exchange-rate?currency=JPY"
+```
+✅ `{"currency":"JPY","rate":170.0}`
+
+```bash
+curl "http://localhost:8080/exchange-rate?currency=GBP"
+```
+✅ `{"currency":"GBP","rate":32000.0}`
+
+#### 6.2.2 Lowercase normalization
+
+Controller normalize về uppercase trước khi gọi SOAP — `currency` trong response luôn là chữ hoa.
+
+```bash
+curl "http://localhost:8080/exchange-rate?currency=eur"
+```
+✅ `{"currency":"EUR","rate":27500.0}`
+
+```bash
+curl "http://localhost:8080/exchange-rate?currency=usd"
+```
+✅ `{"currency":"USD","rate":25350.0}`
+
+#### 6.2.3 Default currency
+
+```bash
+curl "http://localhost:8080/exchange-rate"
+```
+✅ `{"currency":"USD","rate":25350.0}` — mặc định USD khi không truyền `currency`.
+
+#### 6.2.4 Currency không được hỗ trợ
+
+```bash
+curl "http://localhost:8080/exchange-rate?currency=XYZ"
+```
+✅ `{"currency":"XYZ","rate":0.0}` — trả về rate 0.0 thay vì ném lỗi.
+
+#### 6.2.5 Bảng tổng hợp
+
+| Input `?currency=` | `currency` trả về | `rate` |
+|--------------------|-------------------|--------|
+| `USD` | `USD` | 25350.0 |
+| `EUR` | `EUR` | 27500.0 |
+| `JPY` | `JPY` | 170.0 |
+| `GBP` | `GBP` | 32000.0 |
+| `eur` (chữ thường) | `EUR` | 27500.0 |
+| `usd` (chữ thường) | `USD` | 25350.0 |
+| *(không truyền)* | `USD` | 25350.0 |
+| `XYZ` (không hỗ trợ) | `XYZ` | 0.0 |
+
+---
+
+### 6.3 Direct SOAP POST (raw SOAP envelope)
+
+Gọi trực tiếp SOAP endpoint, bỏ qua REST facade. Path `/ws/` trong `permitAll()` — không cần login.
+
+```bash
+curl -X POST http://localhost:8080/ws/ \
+  -H "Content-Type: text/xml; charset=utf-8" \
+  -d '<?xml version="1.0" encoding="UTF-8"?>
+<soapenv:Envelope
+  xmlns:soapenv="http://schemas.xmlsoap.org/soap/envelope/"
+  xmlns:ex="http://socialanalytics.sunasterisk.com/exchangerate">
+  <soapenv:Header/>
+  <soapenv:Body>
+    <ex:GetExchangeRateRequest>
+      <ex:currency>USD</ex:currency>
+    </ex:GetExchangeRateRequest>
+  </soapenv:Body>
+</soapenv:Envelope>'
+```
+
+✅ HTTP 200, response XML:
+```xml
+<SOAP-ENV:Envelope xmlns:SOAP-ENV="http://schemas.xmlsoap.org/soap/envelope/">
+  <SOAP-ENV:Header/>
+  <SOAP-ENV:Body>
+    <ns2:GetExchangeRateResponse xmlns:ns2="http://socialanalytics.sunasterisk.com/exchangerate">
+      <ns2:currency>USD</ns2:currency>
+      <ns2:rate>25350.0</ns2:rate>
+    </ns2:GetExchangeRateResponse>
+  </SOAP-ENV:Body>
+</SOAP-ENV:Envelope>
+```
+
+Thử currency khác — đổi `<ex:currency>EUR</ex:currency>`:
+✅ `<ns2:rate>27500.0</ns2:rate>`
+
+Thử currency không hỗ trợ — đổi `<ex:currency>XYZ</ex:currency>`:
+✅ `<ns2:rate>0.0</ns2:rate>` (không phải SOAP Fault)
+
+---
+
+### 6.4 Security — SOAP paths không cần authentication
+
+SOAP paths cụ thể được `permitAll()` (whitelist hẹp, không dùng wildcard để tránh expose WebSocket).
+
+```bash
+# WSDL không cần cookie
+curl -v http://localhost:8080/ws/exchange-rate.wsdl 2>&1 | grep "< HTTP"
+```
+✅ `< HTTP/1.1 200`
+
+```bash
+# REST facade không cần cookie
+curl -v "http://localhost:8080/exchange-rate?currency=USD" 2>&1 | grep "< HTTP"
+```
+✅ `< HTTP/1.1 200`
+
+```bash
+# SOAP endpoint không cần cookie
+curl -v -X POST http://localhost:8080/ws/ -H "Content-Type: text/xml" \
+  -d '<soapenv:Envelope xmlns:soapenv="http://schemas.xmlsoap.org/soap/envelope/"
+       xmlns:ex="http://socialanalytics.sunasterisk.com/exchangerate">
+       <soapenv:Body><ex:GetExchangeRateRequest><ex:currency>USD</ex:currency></ex:GetExchangeRateRequest></soapenv:Body>
+     </soapenv:Envelope>' 2>&1 | grep "< HTTP"
+```
+✅ `< HTTP/1.1 200`
+
+#### 6.4.1 WebSocket STOMP không bị expose công khai
+
+`/ws` (bare, không trailing slash) KHÔNG trong `permitAll()` — chỉ các SOAP path cụ thể mới được permit.
+
+```bash
+# Dashboard yêu cầu login → WebSocket chỉ dùng được sau khi authenticated
+curl -v http://localhost:8080/ 2>&1 | grep "Location:"
+```
+✅ `Location: http://localhost:8080/login`
+
+---
+
+### 6.5 Export với @ExcelColumn annotation
 
 Import vài posts (Day 2.2) → crawl chạy để có SocialMetric → export:
 ```bash
@@ -364,7 +550,9 @@ curl -b "JSESSIONID=<cookie>" \
 
 Mở file: ✅ Cột xuất hiện đúng thứ tự `order` trong `@ExcelColumn`, header đúng `headerName`.
 
-### 6.3 Chạy toàn bộ test suite
+---
+
+### 6.6 Chạy test suite
 
 ```bash
 ./mvnw test --no-transfer-progress
@@ -376,15 +564,27 @@ Tests run: XX, Failures: 0, Errors: 0, Skipped: 0
 BUILD SUCCESS
 ```
 
-Coverage ≥ 70%:
+Chạy riêng SOAP tests:
+```bash
+# Unit tests — mock WebServiceTemplate, không cần server
+./mvnw test -Dtest="ExchangeRateWebServiceClientTest" --no-transfer-progress
+
+# Integration tests — khởi động full Spring context trên RANDOM_PORT
+./mvnw test -Dtest="ExchangeRateIntegrationTest" --no-transfer-progress
+```
+
+✅ `ExchangeRateIntegrationTest` cover: USD rate, lowercase normalization, default currency, unknown currency (0.0).
+
+Coverage:
 ```bash
 ./mvnw test jacoco:report --no-transfer-progress
 open target/site/jacoco/index.html
 ```
 
-### 6.4 Integration test: import → JMS → stats
+---
 
-Xem class `*IntegrationTest` hoặc chạy riêng:
+### 6.7 Integration test: import → JMS → stats
+
 ```bash
 ./mvnw test -Dtest="*IntegrationTest" --no-transfer-progress
 ```
@@ -402,4 +602,4 @@ Xem class `*IntegrationTest` hoặc chạy riêng:
 | 3 | `[ ]` Unauthenticated → 302 · `[ ]` Login Facebook/Twitter OK · `[ ]` Logout thành công |
 | 4 | `[ ]` Log "crawl job done" xuất hiện · `[ ]` social_metrics có rows · `[ ]` /metrics/last-updated không null |
 | 5 | `[ ]` WS dot xanh · `[ ]` Import → WS frame "IMPORT_COMPLETE" · `[ ]` Chart render sau broadcast |
-| 6 | `[ ]` /exchange-rate 200 · `[ ]` Export cột đúng thứ tự · `[ ]` Test suite 0 failures |
+| 6 | `[ ]` WSDL 200 (no auth) · `[ ]` USD rate=25350.0 · `[ ]` EUR lowercase → EUR/27500.0 · `[ ]` XYZ rate=0.0 · `[ ]` Direct SOAP POST 200 · `[ ]` Export cột đúng thứ tự · `[ ]` Test suite 0 failures |
