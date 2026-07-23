@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<!-- targetNamespace: khai báo namespace mà schema này định nghĩa -->
+<!-- xmlns:tns: tạo prefix tns để schema có thể tự tham chiếu chính nó -->
+<!-- elementFormDefault="qualified": tất cả các phần tử (elements) trong XML instance document phải có namespace prefix hoặc default namespace. -->
+<xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema"
+           targetNamespace="http://socialanalytics.sunasterisk.com/exchangerate"
+           xmlns:tns="http://socialanalytics.sunasterisk.com/exchangerate"
+           elementFormDefault="qualified">
+
+    <xs:element name="GetExchangeRateRequest">
+        <xs:complexType>
+            <xs:sequence>
+                <xs:element name="currency" type="xs:string"/>
+            </xs:sequence>
+        </xs:complexType>
+    </xs:element>
+
+    <xs:element name="GetExchangeRateResponse">
+        <xs:complexType>
+            <xs:sequence>
+                <xs:element name="currency" type="xs:string"/>
+                <xs:element name="rate"     type="xs:double"/>
+            </xs:sequence>
+        </xs:complexType>
+    </xs:element>
+
+</xs:schema>

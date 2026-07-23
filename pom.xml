@@ -129,6 +129,19 @@
             <artifactId>artemis-server</artifactId>
         </dependency>
 
+        <!-- ===== D6: Spring-WS — SOAP client + embedded endpoint ===== -->
+        <dependency>
+            <groupId>org.springframework.ws</groupId>
+            <artifactId>spring-ws-core</artifactId>
+            <version>4.0.10</version>
+        </dependency>
+        <!-- wsdl4j: required by DefaultWsdl11Definition (javax.wsdl.*) — not pulled transitively -->
+        <dependency>
+            <groupId>wsdl4j</groupId>
+            <artifactId>wsdl4j</artifactId>
+            <version>1.6.3</version>
+        </dependency>
+
         <!-- ===== D5: Spring WebSocket + STOMP messaging ===== -->
         <dependency>
             <groupId>org.springframework.boot</groupId>
@@ -161,6 +174,29 @@
 
     <build>
         <plugins>
+            <!-- ===== D6: XJC — generate Java stubs from exchange-rate.xsd (Jakarta XML Bind 4.0) ===== -->
+            <plugin>
+                <groupId>org.jvnet.jaxb</groupId>
+                <artifactId>jaxb-maven-plugin</artifactId>
+                <version>4.0.3</version>
+                <executions>
+                    <execution>
+                        <id>xjc-exchange-rate</id>
+                        <goals>
+                            <goal>generate</goal>
+                        </goals>
+                    </execution>
+                </executions>
+                <configuration>
+                    <schemaDirectory>${project.basedir}/src/main/resources/xsd</schemaDirectory>
+                    <schemaIncludes>
+                        <schemaInclude>exchange-rate.xsd</schemaInclude>
+                    </schemaIncludes>
+                    <generatePackage>com.sunasterisk.socialanalytics.soap</generatePackage>
+                    <generateDirectory>${project.build.directory}/generated-sources/jaxb</generateDirectory>
+                </configuration>
+            </plugin>
+
             <plugin>
                 <groupId>org.springframework.boot</groupId>
                 <artifactId>spring-boot-maven-plugin</artifactId>

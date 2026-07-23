@@ -173,12 +173,12 @@
 
 #### SOAP WebService
 
-- [ ] **D6-01** Add Spring-WS dependency
-- [ ] **D6-02** Generate WSDL stubs for mock exchange rate SOAP service (or hand-write simple client)
-- [ ] **D6-03** Implement `ExchangeRateWebServiceClient`
+- [x] **D6-01** Add Spring-WS dependency
+- [x] **D6-02** Generate WSDL stubs for mock exchange rate SOAP service (or hand-write simple client)
+- [x] **D6-03** Implement `ExchangeRateWebServiceClient`
   - `getExchangeRate(currency)` → returns mocked rate value
-- [ ] **D6-04** Expose `GET /exchange-rate?currency=USD` using the SOAP client
-- [ ] **D6-05** Write test for SOAP client (mock `WebServiceTemplate`)
+- [x] **D6-04** Expose `GET /exchange-rate?currency=USD` using the SOAP client
+- [x] **D6-05** Write test for SOAP client (mock `WebServiceTemplate`)
 
 #### Advanced Reflection
 
