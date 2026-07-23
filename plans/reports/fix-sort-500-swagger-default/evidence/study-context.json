@@ -1,6 +1,0 @@
-{
-  "task": "Fix 500 on GET /posts when sort param contains Swagger UI default value [\"string\"]. Root cause: Spring Data rejects illegal-character sort tokens via InvalidDataAccessApiUsageException, unhandled -> 500.",
-  "acceptanceCriteria": [
-    "GET /posts?sort=[\"string\"] returns 400 JSON, not 500"
-  ]
-}
