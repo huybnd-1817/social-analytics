@@ -38,6 +38,7 @@ public class Post extends BaseEntity {
     @Column(name = "title", length = 500)
     private String title;
 
+    // Không xuất ra Excel — trường TEXT không giới hạn độ dài; xem ExportRowModel để biết tập cột xuất
     @Column(name = "content", columnDefinition = "TEXT")
     private String content;
 
