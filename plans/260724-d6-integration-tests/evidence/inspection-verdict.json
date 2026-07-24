@@ -1,0 +1,36 @@
+{
+  "score": 9.5,
+  "criticalCount": 0,
+  "decision": "SEALED",
+  "acceptanceCovered": [
+    "D6-09: POST /import-posts → posts persisted in DB → IMPORT_COMPLETED JMS published (AFTER_COMMIT) → ImportStatsCache updated → MetricsBroadcaster.broadcast('IMPORT_COMPLETE') called; TC-01 valid upload, TC-02 duplicate rejected, TC-03 unauthenticated redirect — verified: TC-01 asserts postRepository.count()==2, Awaitility untilAsserted confirms importStatsCache.get().get().totalPosts()==2 + Mockito verify(metricsBroadcaster,atLeastOnce()).broadcast('IMPORT_COMPLETE'); TC-02 duplicate returns FAILED + postRepository.count() unchanged + stats cache unchanged; TC-03 no auth → status().is3xxRedirection()",
+    "D6-10: CrawlJobService.updateSocialMetricsJob() → one SocialMetric row per ACTIVE post saved → MetricsBroadcaster.broadcast('CRAWL_COMPLETE') called; TC-01 save + broadcast, TC-02 DELETED posts skipped, TC-03 lastCrawledAt updated — verified: TC-01 socialMetricRepository.count()==SEED_POST_COUNT(2) + verify(metricsBroadcaster).broadcast('CRAWL_COMPLETE'); TC-02 DELETED post added but count stays SEED_POST_COUNT; TC-03 lastCrawledAt not null and isAfter(before) when before was set",
+    "D6-11: Full mvn test suite passes (100 tests, 0 failures); Jacoco check goal bound to verify phase with minimum 0.70 INSTRUCTION COVEREDRATIO; BUILD SUCCESS — verified: mvn test output 'Tests run: 100, Failures: 0, Errors: 0, Skipped: 0 — BUILD SUCCESS'; pom.xml jacoco-maven-plugin check execution bound to verify phase with INSTRUCTION COVEREDRATIO minimum 0.70"
+  ],
+  "regressionChecked": [
+    "All 97 pre-existing tests unaffected — full suite 100 tests pass with 0 failures after integration tests added",
+    "ImportStatsCache.reset() public visibility change: backward-compatible — existing callers (ImportEventListener) only call get() and update(), never reset(); test-only method",
+    "ExcelImportServiceTest: 8 unit tests still pass — no interaction with new integration test fixtures",
+    "ImportJmsPipelineTest (D5): 3 tests pass — shared embedded Artemis broker context isolation via ${random.uuid} URL"
+  ],
+  "contractStatus": "OK",
+  "refuted": [],
+  "unproven": [],
+  "reachableRegressions": [],
+  "findings": [
+    {
+      "severity": "Medium",
+      "category": "Race Condition",
+      "location": "src/test/java/com/sunasterisk/socialanalytics/integration/ExcelImportIntegrationTest.java:122",
+      "summary": "TC-02 stats assertion on importStatsCache could return -1L if JMS from first import had not yet processed; fixed by adding Awaitility await before second import",
+      "disposition": "Accept"
+    },
+    {
+      "severity": "Low",
+      "category": "Assumption",
+      "location": "src/test/java/com/sunasterisk/socialanalytics/integration/CrawlJobIntegrationTest.java:106",
+      "summary": "userRepository.findAll().get(0) ordering not guaranteed by JPA spec; fixed by replacing with findFirstByOrderByIdAsc().orElseThrow()",
+      "disposition": "Accept"
+    }
+  ]
+}

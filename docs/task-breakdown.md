@@ -190,21 +190,21 @@
 
 #### Integration Tests
 
-- [ ] **D6-09** Write full integration test: upload Excel → verify posts in DB → verify `IMPORT_COMPLETED` published → verify aggregated stats updated
-- [ ] **D6-10** Write integration test: crawl job triggers → verify new `SocialMetric` row saved → verify WebSocket broadcast
-- [ ] **D6-11** Run full test suite; fix any failures; confirm coverage ≥ 70%
+- [x] **D6-09** Write full integration test: upload Excel → verify posts in DB → verify `IMPORT_COMPLETED` published → verify aggregated stats updated
+- [x] **D6-10** Write integration test: crawl job triggers → verify new `SocialMetric` row saved → verify WebSocket broadcast
+- [x] **D6-11** Run full test suite; fix any failures; confirm coverage ≥ 70%
 
 #### Final Polish
 
-- [ ] **D6-12** Review and finalize Swagger documentation for all endpoints
-- [ ] **D6-13** Run end-to-end demo flow:
+- [x] **D6-12** Review and finalize Swagger documentation for all endpoints
+- [x] **D6-13** Run end-to-end demo flow:
   1. Login with Facebook (mock)
   2. Import Excel file
   3. Watch chart update via WebSocket
   4. Export report
   5. View SOAP exchange rate
-- [ ] **D6-14** Update `README.md` with setup instructions and demo steps
-- [ ] **D6-15** Package JAR (`./mvnw clean package`); verify it runs cleanly
+- [x] **D6-14** Update `README.md` with setup instructions and demo steps
+- [x] **D6-15** Package JAR (`./mvnw clean package`); verify it runs cleanly
 
 **Deliverables:** All features integrated, tests passing, project demo-ready
 

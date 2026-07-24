@@ -1,0 +1,18 @@
+{
+  "commands": [
+    {
+      "command": "./mvnw clean package",
+      "exitCode": 0,
+      "status": "pass",
+      "summary": "BUILD SUCCESS — 100 tests run, 0 failures, 0 errors; JAR at target/social-analytics-0.0.1-SNAPSHOT.jar",
+      "ts": "2026-07-24T01:17:55+07:00"
+    },
+    {
+      "command": "./mvnw compile",
+      "exitCode": 0,
+      "status": "pass",
+      "summary": "Compile clean after reviewer fixes applied to ExchangeRateController, ImportController, ExcelExportController, MetricController",
+      "ts": "2026-07-24T01:19:00+07:00"
+    }
+  ]
+}

@@ -2,6 +2,9 @@ package com.sunasterisk.socialanalytics.controller;
 
 import com.sunasterisk.socialanalytics.service.ExcelExportService;
 import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.media.Content;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
@@ -24,7 +27,7 @@ import java.time.format.DateTimeFormatter;
 @RestController
 @RequestMapping
 @RequiredArgsConstructor
-@Tag(name = "Export", description = "Xuất báo cáo Excel")
+@Tag(name = "Export", description = "Excel report export endpoints")
 public class ExcelExportController {
 
     private static final String CONTENT_TYPE_XLSX =
@@ -41,7 +44,13 @@ public class ExcelExportController {
      * Tên file có dạng report_yyyyMMddHHmmss.xlsx (BR-003).
      */
     @GetMapping("/export-report")
-    @Operation(summary = "Xuất báo cáo post ACTIVE ra file Excel (.xlsx)")
+    @Operation(summary = "Export active posts and latest metrics as an Excel (.xlsx) file")
+    @ApiResponses({
+        @ApiResponse(responseCode = "200", description = "Excel file download",
+                content = @Content(mediaType = "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet")),
+        @ApiResponse(responseCode = "500", description = "Workbook generation failed",
+                content = @Content(mediaType = "application/json"))
+    })
     public void exportReport(HttpServletResponse response) throws IOException {
         // Tạo tên file có timestamp UTC — đáp ứng BR-003
         String filename = "report_" + FILENAME_FORMATTER.format(ZonedDateTime.now(ZoneOffset.UTC)) + ".xlsx";

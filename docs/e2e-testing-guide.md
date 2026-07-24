@@ -639,13 +639,223 @@ open target/site/jacoco/index.html
 
 ---
 
-### 6.7 Integration test: import → JMS → stats
+### 6.7 Integration tests (D6-09, D6-10, D6-11)
+
+Chạy toàn bộ integration tests:
 
 ```bash
 ./mvnw test -Dtest="*IntegrationTest" --no-transfer-progress
 ```
 
-✅ Test pass: import Excel → post tạo trong DB → `IMPORT_COMPLETED` published → stats cache cập nhật.
+#### ExcelImportIntegrationTest (D6-09)
+
+Ba test cases:
+
+| Test | Kết quả mong đợi |
+|---|---|
+| `uploadValidExcel_persistsPostsAndUpdatesStats` | Posts tạo trong DB · `IMPORT_COMPLETED` published · `ImportStatsCache` cập nhật · `MetricsBroadcaster.broadcast("IMPORT_COMPLETE")` được gọi |
+| `uploadDuplicateExcel_returnsFailed_noPostsAdded` | Trả về failed status · không thêm posts trùng |
+| `uploadWithoutAuth_redirectsToLogin` | HTTP 302 → `/login` |
+
+#### CrawlJobIntegrationTest (D6-10)
+
+Ba test cases:
+
+| Test | Kết quả mong đợi |
+|---|---|
+| `crawlJob_savesOneMetricPerPostAndBroadcasts` | Một `SocialMetric` row per active post · `MetricsBroadcaster.broadcast("CRAWL_COMPLETE")` được gọi đúng 1 lần |
+| `crawlJob_skipsDeletedPosts` | Soft-deleted posts không tạo metric mới |
+| `crawlJob_updatesLastCrawledAt` | `lastCrawledAt` được cập nhật sau khi job chạy |
+
+#### Jacoco coverage gate (D6-11)
+
+Jacoco được cấu hình trong `pom.xml` với ngưỡng tối thiểu **70% instruction coverage**. Build thất bại nếu không đạt:
+
+```bash
+./mvnw verify --no-transfer-progress
+open target/site/jacoco/index.html
+```
+
+✅ `BUILD SUCCESS` — toàn bộ `*IntegrationTest` pass, coverage ≥ 70%.
+
+---
+
+### 6.8 Swagger documentation verification (D6-12)
+
+**Mục tiêu:** tất cả REST endpoints có đủ `@ApiResponse` và `@Parameter` descriptions, Swagger UI render đúng.
+
+#### 6.8.1 Mở Swagger UI
+
+```
+GET http://localhost:8080/swagger-ui.html
+```
+
+✅ Render không lỗi, thấy đủ 6 tag groups: **Posts, Metrics, Charts, Import, Export, Exchange Rate**.
+
+#### 6.8.2 Kiểm tra @ApiResponse per endpoint
+
+| Endpoint | Expected response codes |
+|---|---|
+| `GET /posts` | 200 |
+| `DELETE /posts/{id}` | 204, 404 |
+| `GET /metrics` | 200 |
+| `GET /metrics/last-updated` | 200 (description ghi rõ `lastCrawledAt` có thể null) |
+| `GET /chart-data` | 200, 400 |
+| `POST /import-posts` | 200, 400 |
+| `GET /export-report` | 200 (MIME: `application/vnd.openxmlformats-officedocument.spreadsheetml.sheet`), 500 |
+| `GET /exchange-rate` | 200, 500 |
+
+Mở từng endpoint trong Swagger UI → **Responses** section → xác nhận đủ code và description.
+
+#### 6.8.3 Kiểm tra @Parameter descriptions
+
+| Endpoint | Parameter | Expected description |
+|---|---|---|
+| `GET /chart-data` | `platform` | "Social platform filter (e.g. facebook, twitter)..." |
+| `GET /chart-data` | `from` / `to` | "ISO-8601, e.g. 2026-01-01T00:00:00Z" |
+| `GET /chart-data` | `timezone` | "IANA timezone for date grouping (default: UTC)" |
+| `GET /exchange-rate` | `currency` | "ISO 4217 currency code (e.g. USD, EUR, JPY)" |
+| `POST /import-posts` | `file` | "Excel (.xlsx) file containing post rows..." |
+
+Trong Swagger UI → **Try it out** → xem tooltip/description của từng parameter.
+
+#### 6.8.4 Verify @ApiResponse(400) trên ChartController
+
+```bash
+curl "http://localhost:8080/chart-data?timezone=Invalid_Zone"
+```
+✅ HTTP 400:
+```json
+{"error": "Invalid timezone: Invalid_Zone"}
+```
+
+```bash
+curl "http://localhost:8080/chart-data?from=not-a-date"
+```
+✅ HTTP 400 — Spring default handler cho `MethodArgumentTypeMismatchException`.
+
+---
+
+### 6.9 E2E demo flow (D6-13)
+
+**Mục tiêu:** chạy toàn bộ luồng demo end-to-end từ login đến exchange rate trong một session trình duyệt.
+
+#### Điều kiện
+
+- App đang chạy: `./mvnw spring-boot:run`
+- Có file `test-posts.xlsx` (xem mục 2.1)
+- Có credentials OAuth2 trong `.env` (bắt buộc cho bước login)
+
+#### Bước 1 — Login
+
+```
+http://localhost:8080/login
+```
+
+Bấm **Login with Facebook** → authorize → redirect về dashboard.
+
+✅ Dashboard hiển thị tên user, provider "facebook", và section "Last Updated".
+
+#### Bước 2 — Import Excel
+
+Tag **Import** trong Swagger UI → `POST /import-posts` → upload `test-posts.xlsx`.
+
+Hoặc curl (cần cookie):
+```bash
+curl -b "JSESSIONID=<cookie>" \
+  -F "file=@test-posts.xlsx" \
+  http://localhost:8080/import-posts
+```
+
+✅ Response `status: "DONE"`, `successRecords ≥ 1`.
+
+#### Bước 3 — Quan sát chart update qua WebSocket
+
+Mở dashboard (`http://localhost:8080`) → DevTools → Network → WS.
+
+Ngay sau import, thấy WS frame:
+```json
+{"event": "IMPORT_COMPLETE", "updatedAt": "..."}
+```
+
+✅ Line chart "Likes over Time" và Bar chart "Shares by Platform" tự refresh.
+
+#### Bước 4 — Export report
+
+```bash
+curl -b "JSESSIONID=<cookie>" -OJ http://localhost:8080/export-report
+```
+
+✅ File `report_*.xlsx` tải về, mở ra thấy đúng 13 cột theo thứ tự `@ExcelColumn`.
+
+#### Bước 5 — Exchange rate (no auth required)
+
+```bash
+curl "http://localhost:8080/exchange-rate?currency=USD"
+```
+
+✅ `{"currency":"USD","rate":25350.0}`
+
+```bash
+curl "http://localhost:8080/exchange-rate?currency=eur"
+```
+
+✅ `{"currency":"EUR","rate":27500.0}` — lowercase normalize.
+
+#### Tóm tắt checklist demo
+
+| Bước | Checklist |
+|---|---|
+| 1 — Login | `[ ]` Dashboard load, tên user hiển thị |
+| 2 — Import | `[ ]` `status: "DONE"`, posts xuất hiện trong DB |
+| 3 — Chart update | `[ ]` WS frame nhận được, chart refresh |
+| 4 — Export | `[ ]` File `.xlsx` tải về, header đúng thứ tự |
+| 5 — Exchange rate | `[ ]` USD rate=25350.0 · `[ ]` EUR lowercase → EUR/27500.0 |
+
+---
+
+### 6.10 Package JAR và verify (D6-15)
+
+**Mục tiêu:** build ra executable JAR, xác nhận chạy được độc lập.
+
+#### 6.10.1 Build
+
+```bash
+./mvnw clean package
+```
+
+✅ Output cuối:
+```
+Tests run: 100, Failures: 0, Errors: 0, Skipped: 0
+BUILD SUCCESS
+```
+
+JAR tại: `target/social-analytics-0.0.1-SNAPSHOT.jar`
+
+#### 6.10.2 Chạy JAR
+
+```bash
+java -jar target/social-analytics-0.0.1-SNAPSHOT.jar
+```
+
+✅ Thấy log Spring Boot startup, kết thúc bằng:
+```
+Started SocialAnalyticsApplication in X.XXX seconds
+```
+
+Verify endpoint không cần auth:
+```bash
+curl "http://localhost:8080/exchange-rate?currency=USD"
+```
+✅ `{"currency":"USD","rate":25350.0}`
+
+#### 6.10.3 Build với profile production
+
+```bash
+SPRING_PROFILES_ACTIVE=prod java -jar target/social-analytics-0.0.1-SNAPSHOT.jar
+```
+
+> App sẽ fail nếu không có DB prod — đây là hành vi đúng. Mục tiêu chỉ verify JAR khởi động được với đúng profile.
 
 ---
 
@@ -658,4 +868,5 @@ open target/site/jacoco/index.html
 | 3 | `[ ]` Unauthenticated → 302 · `[ ]` Login Facebook/Twitter OK · `[ ]` Logout thành công |
 | 4 | `[ ]` Log "crawl job done" xuất hiện · `[ ]` social_metrics có rows · `[ ]` /metrics/last-updated không null |
 | 5 | `[ ]` WS dot xanh · `[ ]` Import → WS frame "IMPORT_COMPLETE" · `[ ]` Chart render sau broadcast |
-| 6 | `[ ]` WSDL 200 (no auth) · `[ ]` USD rate=25350.0 · `[ ]` EUR lowercase → EUR/27500.0 · `[ ]` XYZ rate=0.0 · `[ ]` Direct SOAP POST 200 · `[ ]` Export cột đúng thứ tự · `[ ]` Test suite 0 failures |
+| 6 (D6-01→11) | `[ ]` WSDL 200 (no auth) · `[ ]` USD rate=25350.0 · `[ ]` EUR lowercase → EUR/27500.0 · `[ ]` XYZ rate=0.0 · `[ ]` Direct SOAP POST 200 · `[ ]` Export cột đúng thứ tự · `[ ]` ExcelImportIntegrationTest pass · `[ ]` CrawlJobIntegrationTest pass · `[ ]` Coverage ≥ 70% |
+| 6 (Final Polish) | `[ ]` Swagger UI đủ 6 tag groups · `[ ]` DELETE /posts/{id} có 204+404 · `[ ]` GET /chart-data?timezone=Invalid → 400 · `[ ]` Demo flow 5 bước pass · `[ ]` `./mvnw clean package` BUILD SUCCESS · `[ ]` JAR chạy được |

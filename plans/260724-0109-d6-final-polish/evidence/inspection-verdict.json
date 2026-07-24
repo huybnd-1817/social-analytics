@@ -1,0 +1,57 @@
+{
+  "score": 9.5,
+  "criticalCount": 0,
+  "decision": "SEALED",
+  "acceptanceCovered": [
+    "swagger annotations compile and render correctly — ./mvnw compile exit 0; all 6 controllers have @ApiResponse and @Parameter annotations; @Tag descriptions updated to English",
+    "readme.md exists with setup and demo steps — README.md created at project root covering quick-start, prerequisites, 5-step demo flow, swagger UI link, and JAR packaging",
+    "mvnw clean package exits 0 with jar present — BUILD SUCCESS; target/social-analytics-0.0.1-SNAPSHOT.jar produced",
+    "no regressions in existing tests — 100 tests run, 0 failures, 0 errors, 0 skipped"
+  ],
+  "regressionChecked": [
+    "100 tests passed via ./mvnw clean package — ExcelImportIntegrationTest, CrawlJobIntegrationTest, ImportJmsPipelineTest all green",
+    "Compile clean after all reviewer fixes applied",
+    "Annotation-only changes to controllers — no logic altered, no request/response schema changed"
+  ],
+  "contractStatus": "UNCHANGED",
+  "refuted": [],
+  "unproven": [],
+  "reachableRegressions": [],
+  "findings": [
+    {
+      "severity": "high",
+      "category": "correctness",
+      "location": "src/main/java/com/sunasterisk/socialanalytics/controller/ExchangeRateController.java:26",
+      "summary": "@ApiResponse(400) was wrong — SOAP client throws RuntimeException → 500; fixed to @ApiResponse(500)",
+      "disposition": "Accept"
+    },
+    {
+      "severity": "minor",
+      "category": "documentation",
+      "location": "src/main/java/com/sunasterisk/socialanalytics/controller/ImportController.java:36",
+      "summary": "400 description 'File missing' was imprecise; updated to reflect actual IllegalArgumentException paths",
+      "disposition": "Accept"
+    },
+    {
+      "severity": "minor",
+      "category": "documentation",
+      "location": "src/main/java/com/sunasterisk/socialanalytics/controller/ExcelExportController.java:50",
+      "summary": "500 @ApiResponse had no @Content annotation; added application/json to match GlobalExceptionHandler",
+      "disposition": "Accept"
+    },
+    {
+      "severity": "minor",
+      "category": "documentation",
+      "location": "src/main/java/com/sunasterisk/socialanalytics/controller/MetricController.java:38",
+      "summary": "last-updated description clarified to note lastCrawledAt is nullable; always returns 200",
+      "disposition": "Accept"
+    },
+    {
+      "severity": "observation",
+      "category": "documentation",
+      "location": "src/main/java/com/sunasterisk/socialanalytics/controller/PostController.java:24",
+      "summary": "GET /posts omits @ApiResponse(400) for sort-param errors — consistent with MetricController; acceptable pattern",
+      "disposition": "Defer"
+    }
+  ]
+}

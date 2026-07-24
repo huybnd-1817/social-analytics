@@ -24,7 +24,7 @@ public class ImportStatsCache {
     }
 
     /** Xóa cache về trạng thái ban đầu — chỉ dùng trong test. */
-    void reset() {
+    public void reset() {
         latest.set(null);
     }
 }
