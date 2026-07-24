@@ -21,22 +21,22 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.verify;
 
 /**
- * D6-10: integration test for the crawl job pipeline.
+ * D6-10: kiểm thử tích hợp cho luồng crawl job.
  *
- * Flow: CrawlJobService.updateSocialMetricsJob() → @Async SocialCrawlerService.crawlPost() per post
- *       → SocialMetricRepository.save() → MetricsBroadcaster.broadcast("CRAWL_COMPLETE")
+ * Luồng: CrawlJobService.updateSocialMetricsJob() → @Async SocialCrawlerService.crawlPost() theo từng post
+ *        → SocialMetricRepository.save() → MetricsBroadcaster.broadcast("CRAWL_COMPLETE")
  *
- * The job calls CompletableFuture.allOf(...).join(), so by the time the method returns
- * all @Async tasks (and their @Transactional commits) have completed.
- * No Awaitility needed — the call blocks until every metric is persisted.
+ * Job gọi CompletableFuture.allOf(...).join(), nên khi method trả về thì toàn bộ
+ * @Async task (và @Transactional commit của chúng) đã hoàn tất.
+ * Không cần Awaitility — lệnh gọi block cho đến khi mọi metric được lưu vào DB.
  *
- * Proxy ordering invariant: @Async is the OUTER proxy, @Transactional is INNER.
- * The submitted task executes the full TX-wrapped invocation; the TX commits inside
- * proceed(), before the @Async interceptor resolves the returned CompletableFuture.
- * allOf().join() therefore unblocks only after the commit — safe to assert DB state.
+ * Bất biến về thứ tự proxy: @Async là proxy NGOÀI, @Transactional là proxy TRONG.
+ * Task được submit thực thi toàn bộ lời gọi có TX bọc ngoài; TX commit bên trong
+ * proceed(), trước khi @Async interceptor resolve CompletableFuture được trả về.
+ * allOf().join() do đó chỉ unblock sau khi commit — an toàn để assert trạng thái DB.
  *
- * NOT @Transactional on the test — @Async tasks open their own transactions;
- * a surrounding test transaction would prevent them from seeing committed data.
+ * Test KHÔNG dùng @Transactional — các @Async task tự mở transaction riêng;
+ * nếu có transaction bao ngoài từ test, chúng sẽ không thấy dữ liệu đã committed.
  */
 @SpringBootTest
 @ActiveProfiles("test")
@@ -85,8 +85,8 @@ class CrawlJobIntegrationTest {
     }
 
     /**
-     * TC-01: job runs → one SocialMetric row per active post saved →
-     * MetricsBroadcaster.broadcast("CRAWL_COMPLETE") called exactly once.
+     * TC-01: job chạy → lưu đúng một SocialMetric cho mỗi post đang active →
+     * MetricsBroadcaster.broadcast("CRAWL_COMPLETE") được gọi đúng một lần.
      */
     @Test
     void crawlJob_savesOneMetricPerPostAndBroadcasts() {
@@ -99,7 +99,7 @@ class CrawlJobIntegrationTest {
     }
 
     /**
-     * TC-02: DELETED posts are skipped — only ACTIVE posts produce metrics.
+     * TC-02: post có trạng thái DELETED bị bỏ qua — chỉ post ACTIVE mới tạo metric.
      */
     @Test
     void crawlJob_skipsDeletedPosts() {
@@ -119,9 +119,9 @@ class CrawlJobIntegrationTest {
     }
 
     /**
-     * TC-03: lastCrawledAt is set (or refreshed) after a successful run.
-     * CrawlJobService is a singleton; previous tests in the same context may have
-     * already set lastCrawledAt — capture before-value and verify it strictly advanced.
+     * TC-03: lastCrawledAt được gán (hoặc cập nhật) sau khi job chạy thành công.
+     * CrawlJobService là singleton; các test trước trong cùng context có thể đã gán
+     * lastCrawledAt — lưu giá trị trước khi chạy và xác nhận nó tăng lên sau đó.
      */
     @Test
     void crawlJob_updatesLastCrawledAt() {

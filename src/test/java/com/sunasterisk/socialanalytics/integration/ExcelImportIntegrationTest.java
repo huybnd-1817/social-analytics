@@ -31,21 +31,21 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 /**
- * D6-09: end-to-end integration test for the Excel import pipeline.
+ * D6-09: kiểm thử tích hợp end-to-end cho luồng import Excel.
  *
- * Flow: POST /import-posts → ExcelImportService (TX commits) →
- *       ImportSucceededEvent → ImportEventProducer (AFTER_COMMIT) →
- *       JMS IMPORT_COMPLETED → ImportEventListener → ImportStatsCache + MetricsBroadcaster
+ * Luồng: POST /import-posts → ExcelImportService (TX commit) →
+ *        ImportSucceededEvent → ImportEventProducer (AFTER_COMMIT) →
+ *        JMS IMPORT_COMPLETED → ImportEventListener → ImportStatsCache + MetricsBroadcaster
  *
- * NOT @Transactional on the test — TransactionalEventListener(AFTER_COMMIT)
- * only fires on a real commit; a rolled-back test transaction suppresses it.
+ * Test KHÔNG dùng @Transactional — TransactionalEventListener(AFTER_COMMIT)
+ * chỉ được kích hoạt sau khi commit thật sự; transaction của test bị rollback sẽ chặn sự kiện này.
  */
 @SpringBootTest
 @AutoConfigureMockMvc
 @ActiveProfiles("test")
 class ExcelImportIntegrationTest {
 
-    @Autowired private MockMvc mockMvc;
+    @Autowired private MockMvc mockMvc; // ← được inject nhờ @AutoConfigureMockMvc
     @Autowired private PostRepository postRepository;
     @Autowired private UserRepository userRepository;
     @Autowired private ImportBatchRepository importBatchRepository;
@@ -76,8 +76,8 @@ class ExcelImportIntegrationTest {
     }
 
     /**
-     * TC-01: valid Excel → posts persisted → IMPORT_COMPLETED published →
-     * ImportStatsCache updated → MetricsBroadcaster.broadcast("IMPORT_COMPLETE") called.
+     * TC-01: Excel hợp lệ → post được lưu vào DB → IMPORT_COMPLETED được publish →
+     * ImportStatsCache cập nhật → MetricsBroadcaster.broadcast("IMPORT_COMPLETE") được gọi.
      */
     @Test
     void uploadValidExcel_persistsPostsAndUpdatesStats() throws Exception {
@@ -99,14 +99,14 @@ class ExcelImportIntegrationTest {
                .pollInterval(200, TimeUnit.MILLISECONDS)
                .untilAsserted(() -> {
                    assertThat(importStatsCache.get()).isPresent();
-                   assertThat(importStatsCache.get().get().totalPosts()).isEqualTo(2);
+                   assertThat(importStatsCache.get().orElseThrow().totalPosts()).isEqualTo(2);
                    verify(metricsBroadcaster, atLeastOnce()).broadcast("IMPORT_COMPLETE");
                });
     }
 
     /**
-     * TC-02: duplicate post (same platform + platform_post_id) already in DB →
-     * BR-003 triggers → batch FAILED → no new posts saved.
+     * TC-02: post trùng lặp (cùng platform + platform_post_id) đã có trong DB →
+     * BR-003 kích hoạt → batch FAILED → không có post mới nào được lưu.
      */
     @Test
     void uploadDuplicateExcel_returnsFailed_noPostsAdded() throws Exception {
@@ -134,11 +134,11 @@ class ExcelImportIntegrationTest {
 
         assertThat(postRepository.count()).isEqualTo(countAfterFirst);
         // FAILED import must not trigger ImportSucceededEvent → stats cache stays empty for this batch
-        assertThat(importStatsCache.get().map(s -> s.totalPosts()).orElse(-1L)).isEqualTo(countAfterFirst);
+        assertThat(importStatsCache.get().map(ImportStatsCache.ImportStats::totalPosts).orElse(-1L)).isEqualTo(countAfterFirst);
     }
 
     /**
-     * TC-03: unauthenticated request → 302 redirect to /login (not 200 or 403).
+     * TC-03: request không có xác thực → redirect 302 về /login (không phải 200 hay 403).
      */
     @Test
     void uploadWithoutAuth_redirectsToLogin() throws Exception {
